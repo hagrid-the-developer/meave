@@ -88,20 +88,45 @@ namespace meave {
         return utf8_get_all_next(s, len, u, def_u);
     }
 
+    template<size_t S>
+    struct UInt { };
+
+    template<>
+    struct UInt<2> {
+        typedef uint16_t T;
+    };
+
+    template<>
+    struct UInt<4> {
+        typedef uint32_t T;
+    };
+
+    template<size_t S>
+    struct UTF8_TO_X { };
+
+    template<>
+    struct UTF8_TO_X<2> {
+        template<typename UInt>
+        const char *operator()(const char *s, UInt &u, const UInt def_u) {
+            return utf8_to_u16(s, u, def_u);
+        }
+    };
+
+    template<>
+    struct UTF8_TO_X<4> {
+        template<typename UInt>
+        const char *operator()(const char *s, UInt &u, const UInt def_u) {
+            return utf8_to_u32(s, u, def_u);
+        }
+    };
+
     static const char *utf8_to_wchar(const char *s, wchar_t &wch, const wchar_t def_wch = UNI_REPLACEMENT) {
-        if (sizeof(wchar_t) == 2) {
-            uint16_t u;
-            const char *ret = utf8_to_u16(s, u, def_wch);
-            wch = static_cast<wchar_t>(u);
-            return ret;
-        }
-        if (sizeof(wchar_t) == 4) {
-            uint32_t u;
-            const char *ret = utf8_to_u32(s, u, def_wch);
-            wch = static_cast<wchar_t>(u);
-            return ret;
-        }
-        BOOST_VERIFY(0);
+        typedef UInt<sizeof(wch)>::T UInt;
+        UInt u;
+        const UInt def_u = static_cast<UInt>(def_wch);
+        const char *ret = UTF8_TO_X<sizeof(wch)>()(s, u, def_u);
+        wch = static_cast<wchar_t>(u);
+        return ret;
     }
 
     template <typename UInt>
@@ -163,14 +188,27 @@ namespace meave {
         return utf8_put_all_next(dst, len, u);
     }
 
+    template<size_t S>
+    struct X_TO_UTF8 { };
+
+    template<>
+    struct X_TO_UTF8<2> {
+        template <typename Ch>
+        char *operator()(char *dst, const Ch c) const {
+            return u16_to_utf8(dst, static_cast<uint16_t>(c));
+        }
+    };
+
+    template<>
+    struct X_TO_UTF8<4> {
+        template <typename Ch>
+        char *operator()(char *dst, const Ch c) const {
+            return u32_to_utf8(dst, static_cast<uint32_t>(c));
+        }
+    };
+
     static char *wchar_to_utf8(char *dst, const wchar_t wch) {
-        if (sizeof(wchar_t) == 2) {
-            return u16_to_utf8(dst, static_cast<uint16_t>(wch));
-        }
-        if (sizeof(wchar_t) == 4) {
-            return u32_to_utf8(dst, static_cast<uint32_t>(wch));
-        }
-        BOOST_VERIFY(0);
+        return X_TO_UTF8<sizeof(wch)>()(dst, wch);
     }
 }
 

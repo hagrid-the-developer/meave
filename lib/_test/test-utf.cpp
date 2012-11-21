@@ -4,7 +4,7 @@
 #include <streambuf>
 #include <cstring>
 
-#include "lib/utf8.hpp"
+#include "../utf8.hpp"
 
 namespace $ = std;
 namespace $$ = meave;
