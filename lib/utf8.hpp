@@ -7,8 +7,8 @@ namespace meave {
     enum { UNI_REPLACEMENT = 0xfffc, };
 
     template <typename UInt>
-    bool utf8_get_next(const char *s, UInt &u) {
-        unsigned char b = static_cast<unsigned char>(*s);
+    bool utf8_get_next(const char c, UInt &u) {
+        unsigned char b = static_cast<unsigned char>(c);
         if ((b & 0xc0) != 0x80) {
             return false;
         } else {
@@ -19,12 +19,12 @@ namespace meave {
 
 
     // Note: it is possible that len < 0 , it means, that the first character (s[-1]) is wrong
-    template <typename UInt>
-    const char *utf8_get_all_next(const char *s, const ssize_t len, UInt &u, const UInt def_u) {
+    template <typename It, typename UInt>
+    It utf8_get_all_next(It it, const ssize_t len, UInt &u, const UInt def_u) {
         ssize_t i;
         for (i = 0; i < len; ++i) {
-            if (utf8_get_next(s, u)) {
-                ++s;
+            if (utf8_get_next(*it, u)) {
+                ++it;
             } else {
                 break;
             }
@@ -32,7 +32,7 @@ namespace meave {
         if (i != len) { // either len < 0 or some utf8_get_next(.) returned false
             u = def_u;
         }
-        return s;
+        return it;
     }
 
     static ssize_t utf8_to_u16_helper(uint16_t &u) {
@@ -78,14 +78,16 @@ namespace meave {
         }
     }
 
-    static const char *utf8_to_u16(const char *s, uint16_t &u, const uint16_t def_u = UNI_REPLACEMENT) {
-        const ssize_t len = utf8_to_u16_helper(u = static_cast<unsigned char>(*s++));
-        return utf8_get_all_next(s, len, u, def_u);
+    template<typename It>
+    static It utf8_to_u16(It it, uint16_t &u, const uint16_t def_u = UNI_REPLACEMENT) {
+        const ssize_t len = utf8_to_u16_helper(u = static_cast<unsigned char>(*it));
+        return utf8_get_all_next(++it, len, u, def_u);
     }
 
-    static const char *utf8_to_u32(const char *s, uint32_t &u, const uint32_t def_u = UNI_REPLACEMENT) {
-        const ssize_t len = utf8_to_u32_helper(u = static_cast<unsigned char>(*s++));
-        return utf8_get_all_next(s, len, u, def_u);
+    template<typename It>
+    static const char *utf8_to_u32(It it, uint32_t &u, const uint32_t def_u = UNI_REPLACEMENT) {
+        const ssize_t len = utf8_to_u32_helper(u = static_cast<unsigned char>(*it));
+        return utf8_get_all_next(++it, len, u, def_u);
     }
 
     template<size_t S>
@@ -106,86 +108,89 @@ namespace meave {
 
     template<>
     struct UTF8_TO_X<2> {
-        template<typename UInt>
-        const char *operator()(const char *s, UInt &u, const UInt def_u) {
-            return utf8_to_u16(s, u, def_u);
+        template<typename It, typename UInt>
+        It operator()(It it, UInt &u, const UInt def_u) {
+            return utf8_to_u16(it, u, def_u);
         }
     };
 
     template<>
     struct UTF8_TO_X<4> {
-        template<typename UInt>
-        const char *operator()(const char *s, UInt &u, const UInt def_u) {
-            return utf8_to_u32(s, u, def_u);
+        template<typename It, typename UInt>
+        It operator()(It it, UInt &u, const UInt def_u) {
+            return utf8_to_u32(it, u, def_u);
         }
     };
 
-    static const char *utf8_to_wchar(const char *s, wchar_t &wch, const wchar_t def_wch = UNI_REPLACEMENT) {
+    template<typename It>
+    static It utf8_to_wchar(It it, wchar_t &wch, const wchar_t def_wch = UNI_REPLACEMENT) {
         typedef UInt<sizeof(wch)>::T UInt;
         UInt u;
         const UInt def_u = static_cast<UInt>(def_wch);
-        const char *ret = UTF8_TO_X<sizeof(wch)>()(s, u, def_u);
+        It ret = UTF8_TO_X<sizeof(wch)>()(it, u, def_u);
         wch = static_cast<wchar_t>(u);
         return ret;
     }
 
-    template <typename UInt>
-    char *utf8_put_all_next(char *s, const ssize_t len, UInt u) {
+    template <typename It, typename UInt>
+    It utf8_put_all_next(It it, const ssize_t len, UInt u) {
         BOOST_VERIFY(len >= 0 && len < 6);
         for (ssize_t i = 0; i < len; ++i) {
-            const unsigned shift = (static_cast<unsigned>(len) - i - 1) * 6;
-            *s++ = 0x80 | ((u >> shift) & 0x3f);
+            const unsigned shift = (static_cast<unsigned>(len - i) - 1) * 6;
+            *it++ = 0x80 | ((u >> shift) & 0x3f);
         }
-        return s;
+        return it;
     }
 
-    static ssize_t u16_to_utf8_helper(char *dst, const uint16_t u) {
+    static ssize_t u16_to_utf8_helper(char &dst, const uint16_t u) {
         if (u < 0x80) {
-            *dst = static_cast<unsigned char>(u);
+            dst = static_cast<unsigned char>(u);
             return 0;
         } else if (u < 0x800) {
-            *dst = static_cast<unsigned char>(0xc0 | (u >> 6));
+            dst = static_cast<unsigned char>(0xc0 | (u >> 6));
             return 1;
         } else if (u < 0x10000) {
-            *dst = 0x80 | (u & 0x3f);
+            dst = static_cast<unsigned char>(0x80 | (u & 0x3f));
             return 2;
         } else {
             BOOST_VERIFY(0);
         }
     }
 
-    static ssize_t u32_to_utf8_helper(char *dst, const uint16_t u) {
+    static ssize_t u32_to_utf8_helper(char &dst, const uint16_t u) {
         if (u < 0x80) {
-            *dst = static_cast<unsigned char>(u);
+            dst = static_cast<unsigned char>(u);
             return 0;
         } else if (u < 0x800) {
-            *dst = static_cast<unsigned char>(0xc0 | (u >> 6));
+            dst = static_cast<unsigned char>(0xc0 | (u >> 6));
             return 1;
         } else if (u < (1<<16)) {
-            *dst = static_cast<unsigned char>(0xe0 | (u >> 12));
+            dst = static_cast<unsigned char>(0xe0 | (u >> 12));
             return 2;
         } else if (u < (1<<21)) {
-            *dst = static_cast<unsigned char>(0xf0 | (u >> 18));
+            dst = static_cast<unsigned char>(0xf0 | (u >> 18));
             return 3;
         } else if (u < (1<<26)) {
-            *dst = static_cast<unsigned char>(0xf8 | (u >> 24));
+            dst = static_cast<unsigned char>(0xf8 | (u >> 24));
             return 4;
         } else if (u < (1U<<31)) {
-            *dst = static_cast<unsigned char>(0xfc | (u >> 30));
+            dst = static_cast<unsigned char>(0xfc | (u >> 30));
             return 5;
         } else {
             BOOST_VERIFY(0);
         }
     }
 
-    static char *u16_to_utf8(char *dst, const uint16_t u) {
-        const ssize_t len = u16_to_utf8_helper(dst++, u);
-        return utf8_put_all_next(dst, len, u);
+    template<typename It>
+    static It u16_to_utf8(It it_dst, const uint16_t u) {
+        const ssize_t len = u16_to_utf8_helper(*it_dst, u);
+        return utf8_put_all_next(++it_dst, len, u);
     }
 
-    static char *u32_to_utf8(char *dst, const uint32_t u) {
-        const ssize_t len = u32_to_utf8_helper(dst++, u);
-        return utf8_put_all_next(dst, len, u);
+    template<typename It>
+    static It u32_to_utf8(It it_dst, const uint32_t u) {
+        const ssize_t len = u32_to_utf8_helper(*it_dst, u);
+        return utf8_put_all_next(++it_dst, len, u);
     }
 
     template<size_t S>
@@ -193,22 +198,23 @@ namespace meave {
 
     template<>
     struct X_TO_UTF8<2> {
-        template <typename Ch>
-        char *operator()(char *dst, const Ch c) const {
-            return u16_to_utf8(dst, static_cast<uint16_t>(c));
+        template <typename It, typename Ch>
+        It operator()(It it_dst, const Ch c) const {
+            return u16_to_utf8(it_dst, static_cast<uint16_t>(c));
         }
     };
 
     template<>
     struct X_TO_UTF8<4> {
-        template <typename Ch>
-        char *operator()(char *dst, const Ch c) const {
-            return u32_to_utf8(dst, static_cast<uint32_t>(c));
+        template <typename It, typename Ch>
+        It operator()(It it_dst, const Ch c) const {
+            return u32_to_utf8(it_dst, static_cast<uint32_t>(c));
         }
     };
 
-    static char *wchar_to_utf8(char *dst, const wchar_t wch) {
-        return X_TO_UTF8<sizeof(wch)>()(dst, wch);
+    template<typename It>
+    static It wchar_to_utf8(It it_dst, const wchar_t wch) {
+        return X_TO_UTF8<sizeof(wch)>()(it_dst, wch);
     }
 }
 
