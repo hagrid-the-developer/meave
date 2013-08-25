@@ -35,20 +35,20 @@ namespace meave { namespace algorithms {
          */
         It merge_(It ot, It it, const $::size_t from, const size_t step) const {
             const $::size_t mid = from + step;
-            const $::size_t end = $::min(mid + step, len_);
+            const $::size_t end = mid + step;
             $::size_t i = from;
             $::size_t j = mid;
-            for (; i < mid && j < end; ++ot) {
+            for (; i < $::min(mid, len_) && j < $::min(end, len_); ++ot) {
                 if ((*this)(it[j], it[i])) {
                     *ot = it[j++];
                 } else {
                     *ot = it[i++];
                 }
             }
-            for (; i < mid; ++ot) {
+            for (; i < $::min(mid, len_); ++ot) {
                 *ot = it[i++];
             }
-            for (; j < end; ++ot) {
+            for (; j < $::min(end, len_); ++ot) {
                 *ot = it[j++];
             }
             return ot;
@@ -64,13 +64,14 @@ namespace meave { namespace algorithms {
             $::size_t $ = 0;
             for (; step_($) < len_; ++$) {
                 It o = q;
-                for ($::size_t i = 0; i + step_($) < len_; i += 2*step_($)) {
+                for ($::size_t i = 0; i < len_; i += 2*step_($)) {
                     o = merge_(o, b, i, step_($));
                 }
                 $::swap(b, q);
             }
             if (1 == $ % 2) {
-                $::copy(b, q, q + len_);
+                BOOST_ASSERT(b == q_ && q == b_);
+                $::copy(q_, q_ + len_, b_);
             }
         }
     };
