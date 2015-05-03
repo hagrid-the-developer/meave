@@ -8,7 +8,7 @@ namespace meave {
 
 namespace {
 
-double gettime() {
+double gettime() noexcept {
 	struct timeval tv;
 	if (-1 == gettimeofday(&tv, nullptr))
 		::abort(); // This could only happen by some mistake in the program.
