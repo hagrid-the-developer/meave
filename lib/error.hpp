@@ -1,12 +1,27 @@
 #ifndef MEAVE_ERROR_HPP_INCLUDED
 #	define MEAVE_ERROR_HPP_INCLUDED
 
+#include <cerrno>
 #include <cstdarg>
 #include <sstream>
+#include <system_category>
+#include <system_error>
 
 #include "str_printf.hpp"
 
 namespace meave {
+
+struct EC : public std::error_code {
+	EC()
+	:	std::error_code(errno, std::system_category()) {
+	}
+}
+
+struct SE : public std::system_error {
+	SE()
+	:	std::system_error(EC()) {
+	}
+}
 
 class Error : public std::exception {
 private:
