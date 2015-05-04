@@ -13,7 +13,7 @@ namespace meave {
 
 struct EC : public std::error_code {
 	EC()
-	:	std::error_code(errno, std::system_category()) {
+	:	std::error_code(errno, std::generic_category()) {
 	}
 }
 
