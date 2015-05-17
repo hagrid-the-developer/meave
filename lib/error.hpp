@@ -4,7 +4,6 @@
 #include <cerrno>
 #include <cstdarg>
 #include <sstream>
-#include <system_category>
 #include <system_error>
 
 #include "str_printf.hpp"
@@ -15,13 +14,19 @@ struct EC : public std::error_code {
 	EC()
 	:	std::error_code(errno, std::generic_category()) {
 	}
-}
+	EC(const int errno_val)
+	:	std::error_code(errno_val, std::generic_category()) {
+	}
+};
 
 struct SE : public std::system_error {
 	SE()
 	:	std::system_error(EC()) {
 	}
-}
+	SE(const int errno_val)
+	:	std::system_error(EC(errno_val)) {
+	}
+};
 
 class Error : public std::exception {
 private:
