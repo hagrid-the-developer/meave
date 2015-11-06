@@ -13,7 +13,7 @@ namespace {
 	typedef $::default_random_engine RandomGenerator;
 
 	struct CRC {
-		static const ::uint32_t POLY = 0x11EDC6F4;
+		static const ::uint32_t POLY = 0x1EDC6F41;
 		static const ::size_t BITS = 32;
 		static ::uint32_t INIT_REM = 0;
 		static ::uint32_t FINAL_XOR = 0;
