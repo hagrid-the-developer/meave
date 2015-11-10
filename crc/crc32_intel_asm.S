@@ -26,5 +26,5 @@ crc32_intel_asm:
 	and r11, 0x1
 	je 5f
 	crc32b (%rdi), %rdx
-5:	mov %rdx, %rax #r eturn value
+5:	mov %rdx, %rax # return value
 	ret
