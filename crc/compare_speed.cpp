@@ -5,6 +5,8 @@
 #include <memory>
 #include <random>
 
+#include "lib/gettime.hpp"
+
 extern "C" {
 #include "crc/funcs.h"
 }
@@ -44,25 +46,25 @@ namespace {
 
 	bool compare_output(const char *name, CRCCalc f) {
 		auto arr = $::make_unique<::uint8_t[]>(LEN);
-		$::generate(&arr[0], &arr[LEN], dist(rand));
+		$::generate(&arr[0], &arr[LEN], []() -> ::uint8_t { dist(rand); });
 
 		const auto expected_res = calc_with_boost(&arr[0], LEN);
 		const auto real_res = f(&arr[0], LEN);
 
 		const char is_passed = expected_res == real_res;
 		const char *verdict = is_passed ? "Passed" : "Failed";
-		$::cerr << "Test: " << name << "; expected: " << expexted_res << "; real: " << real_res << "; verdict: " << verdict << $::endl;
+		$::cerr << "Test: " << name << "; expected: " << expected_res << "; real: " << real_res << "; verdict: " << verdict << $::endl;
 
 		return is_passed;
 	}
 
 	void measure_speed(const char *name, CRCCalc f) {
 		auto arr = $::make_unique<::uint8_t[]>(LEN);
-		$::generate(&arr[0], &arr[LEN], dist(rand));
+		$::generate(&arr[0], &arr[LEN], []() -> ::uint8_t { return dist(rand); });
 
-		const auto time_beg = getrealtime();
+		const auto time_beg = meave::getrealtime();
 		f(&arr[0], LEN);
-		const auto time_end = getrealtime();
+		const auto time_end = meave::getrealtime();
 
 		$::cerr << "Speed: " << name << "; time: " << (time_end - time_beg) << "s" << $::endl;
 	}

@@ -9,7 +9,7 @@ compare_speed: compare_speed.o crc32_intel_asm.o
 	g++ -o $@ $^
 
 %.o: %.S
-	as $<
+	as $< -o $@
 
 compare_speed.o: compare_speed.cpp funcs.h
 	$(COMP.cpp)

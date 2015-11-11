@@ -17,10 +17,10 @@ double gettime() noexcept {
 }
 
 double getrealtime() noexcept {
-	struct timeval tv;
-	if (-1 == clock_gettime(CLOCK_REALTIME, &tv))
+	struct timespec ts;
+	if (-1 == clock_gettime(CLOCK_REALTIME, &ts))
 		::abort(); // This could only happen by some mistake in the program.
-	return tv.tv_sec + tv.tv_usec/1000000.0;
+	return ts.tv_sec + ts.tv_nsec/1000000000.0;
 }
 
 } /* anonymouse namespace */
