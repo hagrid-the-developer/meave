@@ -19,7 +19,7 @@ namespace $ = std;
 
 namespace {
 
-	typedef ::uint32_t (*CRCCalc)(const ::uint8_t*, const ::size_t);
+	typedef ::uint32_t (*CRCCalc)(const ::uint8_t*, const ::size_t, const ::uint32_t);
 	typedef $::default_random_engine RandomGenerator;
 
 	struct CRC {
@@ -38,7 +38,7 @@ namespace {
 	RandomGenerator rand;
 	$::uniform_int_distribution<::uint8_t> dist;
 
-	::uint32_t calc_with_boost(const ::uint8_t *arr, const ::size_t len) {
+	::uint32_t calc_with_boost(const ::uint8_t *arr, const ::size_t len, const ::uint32_t=0) {
 		CRC::Calc calc;
 		calc.process_bytes(&arr[0], len);
 		return calc.checksum();
@@ -49,7 +49,7 @@ namespace {
 		$::generate(&arr[0], &arr[LEN], []() -> ::uint8_t { dist(rand); });
 
 		const auto expected_res = calc_with_boost(&arr[0], LEN);
-		const auto real_res = f(&arr[0], LEN);
+		const auto real_res = f(&arr[0], LEN, CRC::INIT_REM);
 
 		const char is_passed = expected_res == real_res;
 		const char *verdict = is_passed ? "Passed" : "Failed";
@@ -63,7 +63,7 @@ namespace {
 		$::generate(&arr[0], &arr[LEN], []() -> ::uint8_t { return dist(rand); });
 
 		const auto time_beg = meave::getrealtime();
-		f(&arr[0], LEN);
+		f(&arr[0], LEN, CRC::INIT_REM);
 		const auto time_end = meave::getrealtime();
 
 		$::cerr << "Speed: " << name << "; time: " << (time_end - time_beg) << "s" << $::endl;
@@ -72,5 +72,10 @@ namespace {
 } /* Anonymouse Namespace */
 
 int main(void) {
+	compare_output("crc32_intel_asm", crc32_intel_asm);
+	/* */
+	measure_speed("calc_with_boost", calc_with_boost);
+	measure_speed("crc32_intel_asm", crc32_intel_asm);
+	/* */
 	return 0;
 }
