@@ -45,24 +45,19 @@ namespace {
 		return calc.checksum();
 	}
 
-	bool compare_output(const char *name, CRCCalc f) {
+	void compare_output(const char *name, CRCCalc f) {
 		auto arr = $::make_unique<::uint8_t[]>(LEN + MAX_SUFF_LEN);
 		$::generate(&arr[0], &arr[LEN + MAX_SUFF_LEN], []() -> ::uint8_t { dist(rand); });
 
-		bool is_passed_all = false;
 		for (::size_t suff = 0; suff < MAX_SUFF_LEN; ++suff) {
 			const ::size_t len = LEN + suff;
 			const auto expected_res = calc_with_boost(&arr[0], len);
 			const auto real_res = f(&arr[0], len, CRC::INIT_REM);
 
-			const char is_passed = expected_res == real_res;
+			const bool is_passed = expected_res == real_res;
 			const char *verdict = is_passed ? "Passed" : "Failed";
-			$::cerr << "Test: " << name << "; suff_len: " << suff << "; expected: " << expected_res << "; real: " << real_res << "; verdict: " << verdict << $::endl;
-
-			is_passed_all = is_passed_all && is_passed;
+			$::cerr << "Test: " << name << "; suff_len: " << suff << "; expected: " << expected_res << "; real: " << real_res << "; verdict: " << verdict << ";" << $::endl;
 		}
-
-		return is_passed_all;
 	}
 
 	void measure_speed(const char *name, CRCCalc f) {
@@ -72,10 +67,10 @@ namespace {
 		for (::size_t suff = 0; suff < MAX_SUFF_LEN; ++suff) {
 			const ::size_t len = LEN + suff;
 			const auto time_beg = meave::getrealtime();
-			f(&arr[0], len, CRC::INIT_REM);
+			const auto res = f(&arr[0], len, CRC::INIT_REM);
 			const auto time_end = meave::getrealtime();
 
-			$::cerr << "Speed: " << name << "; suff_len: " << suff << "; time: " << (time_end - time_beg) << "s" << $::endl;
+			$::cerr << "Speed: " << name << "; suff_len: " << suff << "; res: " << res << "; time: " << (time_end - time_beg) << "s;" << $::endl;
 		}
 	}
 
