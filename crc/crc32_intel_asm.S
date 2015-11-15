@@ -11,6 +11,7 @@ crc32_intel_asm:
 	crc32q (%rdi), %rdx
 	lea 0x8(%rdi), %rdi
 	dec %r11
+	jmp 1b
 2:	mov %rsi, %r11 # if (%rsi & $0x4)
 	and $0x4, %r11
 	je 3f
