@@ -1,5 +1,5 @@
 CC ?= g++
-CXXFLAGS += -std=gnu++1y -I..
+CXXFLAGS += -std=gnu++1y -I.. -Ofast
 
 COMP.cpp = $(CC) $(CXXFLAGS) -o $@ -c $<
 
