@@ -23,7 +23,7 @@ double getrealtime() noexcept {
 	return ts.tv_sec + ts.tv_nsec/1000000000.0;
 }
 
-} /* anonymouse namespace */
+} /* anonymous namespace */
 
 } /* namespace meave */
 
