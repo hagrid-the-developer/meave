@@ -20,11 +20,11 @@ namespace {
 	typedef ::uint32_t (*CRCCalcForCaller)(const ::uint8_t*, const ::size_t, const ::uint32_t);
 
 	struct CRC {
-		static const ::uint32_t POLY = 0x1EDC6F41;
 		static const ::size_t BITS = 32;
+		static const ::uint32_t POLY = 0x1EDC6F41;
 		static const ::uint32_t INIT_REM = 0;
 		static const ::uint32_t FINAL_XOR = 0;
-		static const bool REFLECT_INPUT = false;
+		static const bool REFLECT_INPUT = true;
 		static const bool REFLECT_REMAINDER = false;
 
 		typedef boost::crc_optimal<BITS, POLY, INIT_REM, FINAL_XOR, REFLECT_INPUT, REFLECT_REMAINDER> Calc;
@@ -52,6 +52,8 @@ int main(void) {
 	$::cerr << $::endl;
 	/* */
 	mct::measure_speed("calc_with_boost", calc_with_boost);
+	$::cerr << $::endl;
+	mct::measure_speed("sse42_crc32", sse42_crc32);
 	$::cerr << $::endl;
 	mct::measure_speed("crc32_intel_asm", calc_caller<crc32_intel_asm>);
 	/* */
