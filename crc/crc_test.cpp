@@ -19,12 +19,15 @@ static const ::size_t MAX_SUFF_LEN = 16;
 RandomGenerator rand;
 $::uniform_int_distribution<::uint8_t> dist;
 
+auto arr = $::make_unique<::uint8_t[]>(LEN + MAX_SUFF_LEN);
+
 } /* anonymous namespace */
 
-void compare_output(const char *name, CRCFunc f_expected, CRCFunc f_real) {
-	auto arr = $::make_unique<::uint8_t[]>(LEN + MAX_SUFF_LEN);
-	$::generate(&arr[0], &arr[LEN + MAX_SUFF_LEN], []() -> ::uint8_t { dist(rand); });
+void init_comparisions(void) {
+	$::generate(&arr[0], &arr[LEN + MAX_SUFF_LEN], []() -> ::uint8_t { return dist(rand); });
+}
 
+void compare_output(const char *name, CRCFunc f_expected, CRCFunc f_real) {
 	for (::size_t suff = 0; suff < MAX_SUFF_LEN; ++suff) {
 		const ::size_t len = LEN + suff;
 		const auto expected_result = f_expected(&arr[0], len);
@@ -42,9 +45,6 @@ void compare_output(const char *name, CRCFunc f_expected, CRCFunc f_real) {
 }
 
 void measure_speed(const char *name, CRCFunc f) {
-	auto arr = $::make_unique<::uint8_t[]>(LEN + MAX_SUFF_LEN);
-	$::generate(&arr[0], &arr[LEN + MAX_SUFF_LEN], []() -> ::uint8_t { return dist(rand); });
-
 	for (::size_t suff = 0; suff < MAX_SUFF_LEN; ++suff) {
 		const ::size_t len = LEN + suff;
 		const auto time_beg = meave::getrealtime();

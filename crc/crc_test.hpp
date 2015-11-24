@@ -7,6 +7,7 @@ namespace meave { namespace crc { namespace test {
 
 typedef std::function<::uint32_t(const ::uint8_t*, const ::size_t)> CRCFunc;
 
+void init_comparisions(void);
 void compare_output(const char *name, CRCFunc f_expected, CRCFunc f_real);
 void measure_speed(const char *name, CRCFunc f);
 

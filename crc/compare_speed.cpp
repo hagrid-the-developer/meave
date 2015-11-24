@@ -47,6 +47,8 @@ namespace {
 int main(void) {
 	namespace mct = meave::crc::test;
 	/* */
+	mct::init_comparisions();
+	/* */
 	mct::compare_output("crc32_intel_asm", calc_with_boost, calc_caller<crc32_intel_asm>);
 	$::cerr << $::endl;
 	$::cerr << $::endl;
