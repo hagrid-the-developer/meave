@@ -1,7 +1,7 @@
 #include <cstdlib>
 /* *** */
-#include <iostream>
 #include <algorithm>
+#include <iostream>
 /* *** */
 #include <boost/assert.hpp>
 #include <boost/lexical_cast.hpp>
@@ -10,6 +10,7 @@
 /* *** */
 #include <meave/algorithms/merge-sort.hpp>
 #include <meave/commons.hpp>
+#include <meave/lib/str_printf.hpp>
 
 using namespace boost::assign;
 
@@ -58,10 +59,10 @@ main(void) {
     typedef $::pair<$::string, boost::function< bool(void) > > TestPair;
     $::vector<TestPair> tests = list_of<TestPair>("x001", &x001);
     for (unsigned i = 3; i <= 100; i += rand() % 5) {
-        tests.push_back($::make_pair($::string() + "x002(" + boost::lexical_cast<$::string>(i) + ")", [i]() -> bool {return x002(i); }));
+        tests.push_back($::make_pair(meave::str_printf("x002(%u)", i), [i]() -> bool {return x002(i); }));
     }
     for (unsigned i = 101; i <= 200000; i += rand() % 10000) {
-        tests.push_back($::make_pair($::string() + "x002(" + boost::lexical_cast<$::string>(i) + ")", [i]() -> bool {return x002(i); }));
+        tests.push_back($::make_pair(meave::str_printf("x002(%u)", i), [i]() -> bool {return x002(i); }));
     }
     unsigned failures_num = 0;
     for (auto it(tests.begin()), e(tests.end()); it != e; ++it) {
