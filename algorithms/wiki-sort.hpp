@@ -2,12 +2,15 @@
 #   define MEAVE_ALGORITHMS_WIKI_SORT_HPP
 
 #   include <algorithm>
-#   include <boost/assert.hpp>
+#   include <cassert>
+#   include <iterator>
 
 #   include <meave/commons.hpp>
 
 /**
- * WikiSort: http://www.algoritmy.net/article/51222/Block-Merge-Sort .
+ * WikiSort:
+ * 	* https://en.wikipedia.org/wiki/Block_sort
+ * 	* http://www.algoritmy.net/article/51222/Block-Merge-Sort .
  *
  */
 namespace meave { namespace algorithms {
@@ -16,15 +19,43 @@ namespace meave { namespace algorithms {
      *
      */
     template <typename It, typename Lt>
-    class MergeSort : protected Lt {
+    class WikiSort : protected Lt {
     public:
-        typedef $::iterator_traits<It> V;
+	typedef $::iterator_traits<It> Traits;
+	typedef typename V::difference_type Distance;
+	typedef typename Distance D;
 
     private:
-        It b_, q_;
+	It b_, q_;
+
+	void rotate(const It b, const It e, const D amount) {
+		const It _ = $::advance(b, amount);
+		$::reverse(b, e);
+		$::reverse(b, _);
+		$::reverse(_, e);
+	}
+
+	D floor_pow_2(const D $) {
+		static_assert(sizeof($) == 4 || sizeof($) == 8, "Wrong size of Distance type");
+
+		D $$ = $;
+
+#		define X(_) $$ |= $$ >> _
+		X(1);
+		X(2);
+		X(4);
+		X(8);
+		X(16);
+
+		if (sizeof($) > 4)
+			X(32);
+#		undef X
+
+		return $$;
+	}
 
     public:
-        MergeSort(const It &b, const It &q, const Lt &lt)
+        WikiSort(const It &b, const It &q, const Lt &lt)
         :   Lt(lt),
         ,   b_(b)
         ,   q_(q)
