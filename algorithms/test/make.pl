@@ -36,9 +36,9 @@ for my $x(@cpp) {
     my $head_line = `gcc $CFLAGS -M '$f'`;
     die "Cannot run gcc -M '$f'" if $?;
     print "$b: $o\n";
-    print "\tg++ -std=gnu++0x $CFLAGS -o '$b' '$o'\n";
+    print "\tg++ -std=gnu++1y $CFLAGS -o '$b' '$o'\n";
     chomp $head_line;
     print "$head_line\n";
-    print "\tg++ -std=gnu++0x $CFLAGS -o '$o' -c '$f'\n";
+    print "\tg++ -std=gnu++1y $CFLAGS -o '$o' -c '$f'\n";
     print "\n";
 }
