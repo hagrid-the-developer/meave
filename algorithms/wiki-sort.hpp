@@ -51,7 +51,7 @@ namespace meave { namespace algorithms {
 			X(32);
 #		undef X
 
-		return $$;
+		return $$ -= $$ >> 1;
 	}
 
     public:
