@@ -35,24 +35,28 @@ namespace meave { namespace algorithms {
 		$::reverse(_, e);
 	}
 
-	D floor_pow_2(const D $) {
-		static_assert(sizeof($) == 4 || sizeof($) == 8, "Wrong size of Distance type");
+	D floor_pow_2(D $) {
+		static_assert(sizeof($) >= 1 && sizeof($) <= 8, "Wrong size of Distance type");
 
-		D $$ = $;
-
-#		define X(_) $$ |= $$ >> _
+#		define X(_) $ |= $ >> _
 		X(1);
 		X(2);
 		X(4);
-		X(8);
-		X(16);
-
+		if (sizeof($) > 1)
+			X(8);
+		if (sizeof($) > 2)
+			X(16);
 		if (sizeof($) > 4)
 			X(32);
 #		undef X
 
-		return $$ -= $$ >> 1;
+		return $ -= $ >> 1;
 	}
+
+	It bin_search_first(const It b, const IT e) {
+
+	}
+	It bin_search_last(const It b, const IT e) {
 
     public:
         WikiSort(const It &b, const It &q, const Lt &lt)
