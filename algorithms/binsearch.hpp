@@ -49,9 +49,9 @@ It binsearch_first(const X $, const It lit, const It rit, const Lt &lt = Lt()) {
 	auto l = r - r;
 	while (l < r) {
 		const auto m = (l + r)/2;
-		const It mit = $::advance(lit, m);
+		const auto arr_m = lit[m];
 
-		if ( lt(*mit, $) ) { // arr[m] < $
+		if ( lt(arr_m, $) ) { // arr[m] < $
 			++(l = m);
 		} else { // arr[m] >= $
 			r = m;
@@ -90,13 +90,13 @@ It binsearch_last(const X $, const It lit, const It rit, const Lt &lt = Lt()) {
 	auto l = r - r;
 	while (l < r) {
 		const auto m = (l + r)/2;
-		const It mit = $::advance(lit, m);
+		const auto arr_m = lit[m];
 
-		if ( lt(*mit, $) ) { // arr[m] < $
+		if ( lt(arr_m, $) ) { // arr[m] < $
 			++(l = m);
-		} if ( lt($, *mit) ) { // arr[m] > $
+		} if ( lt($, arr_m) ) { // arr[m] > $
 			r = m;
-		}else { // arr[m] == $
+		} else { // arr[m] == $
 			++(l = m);
 		}
 	}
