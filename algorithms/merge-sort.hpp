@@ -15,8 +15,8 @@ namespace meave { namespace algorithms {
     class MergeSort : protected Lt {
     public:
         typedef $::iterator_traits<It> Traits;
-	typedef typename V::difference_type Distance;
-	typedef typename Distance D;
+	typedef typename Traits::difference_type Distance;
+	typedef Distance D;
 
     private:
         It b_, q_;
@@ -72,14 +72,14 @@ namespace meave { namespace algorithms {
                 $::swap(b, q);
             }
             if (1 == $ % 2) {
-                BOOST_ASSERT(b == q_ && q == b_);
+                assert(b == q_ && q == b_);
                 $::move(q_, q_ + len_, b_);
             }
         }
     };
 
     template<typename It, typename Lt>
-    void merge_sort(const It &b, const It &q, const D len, const Lt &lt) {
+    void merge_sort(const It &b, const It &q, const typename $::iterator_traits<It>::difference_type len, const Lt &lt) {
         MergeSort<It, Lt>(b, q, len, lt)();
     }
 } }

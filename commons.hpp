@@ -3,4 +3,6 @@
 
 namespace $ = std;
 
+typedef unsigned uns;
+
 #endif

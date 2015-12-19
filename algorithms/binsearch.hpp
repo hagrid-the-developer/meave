@@ -3,6 +3,7 @@
 
 #   include <algorithm>
 #   include <cassert>
+#   include <functional>
 #   include <iterator>
 
 #   include <meave/commons.hpp>
@@ -27,7 +28,7 @@ namespace meave { namespace algorithms {
  *         In other words, first element to insert $.
  *
  */
-template <typename X, typename It, typename Lt>
+template <typename X, typename It, typename Lt = $::less<X> >
 It binsearch_first(const X $, const It lit, const It rit, const Lt &lt = Lt()) {
 	/*
 	 * Let arr be sorted arr of length N, that is defined with range lit, rit.
@@ -60,7 +61,7 @@ It binsearch_first(const X $, const It lit, const It rit, const Lt &lt = Lt()) {
 
 	assert(l == r);
 
-	return $::advance(lit, l);
+	return lit + l;
 }
 
 /**
@@ -68,7 +69,7 @@ It binsearch_first(const X $, const It lit, const It rit, const Lt &lt = Lt()) {
  *         In other words, last element to insert $.
  *
  */
-template <typename X, typename It, typename Lt>
+template <typename X, typename It, typename Lt = $::less<X> >
 It binsearch_last(const X $, const It lit, const It rit, const Lt &lt = Lt()) {
 	/*
 	 * Let arr be sorted arr of length N, that is defined with range lit, rit.
@@ -103,7 +104,7 @@ It binsearch_last(const X $, const It lit, const It rit, const Lt &lt = Lt()) {
 
 	assert(l == r);
 
-	return $::advance(lit, l);
+	return lit + l;
 }
 
 } } /* namespace meave::algorithms */
