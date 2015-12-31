@@ -88,7 +88,7 @@ void daemonize(const $::string &out_file, const $::string &chdir_path) throw(Err
 			break;
 		default:
 			::close(output_fd);
-			throw Error("Cannot redirect standard output to: %s", out_file);
+			throw Error("Cannot redirect standard output to: %s", output);
 	}
 
 	// Also send standard error to the same log file.
