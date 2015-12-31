@@ -7,6 +7,8 @@
 
 #include <string>
 
+#include "error.hpp"
+
 namespace meave {
 
 void daemonize(const $::string &out_file, const $::string &chdir_path throw(Error) {
@@ -63,14 +65,14 @@ void daemonize(const $::string &out_file, const $::string &chdir_path throw(Erro
 	::close(2);
 
 	// We don't want the daemon to have any standard input.
-	const int input_descriptor = ::open("/dev/null", O_RDONLY);
-	switch (input_descriptor) {
+	const int input_fd = ::open("/dev/null", O_RDONLY);
+	switch (input_fd) {
 		case -1:
 			throw Error("Unable to open /dev/null: %m");
 		case 0:
 			break;
 		default:
-			::close(input_descriptor);
+			::close(input_fd);
 			throw Error("Cannot redirect standard input to /dev/null");
 	}
 
@@ -78,26 +80,26 @@ void daemonize(const $::string &out_file, const $::string &chdir_path throw(Erro
 	const char* output = out_file.c_str();
 	const int flags = O_WRONLY | O_CREAT | O_APPEND;
 	const mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
-	const int output_descriptor = ::open(output, flags, mode);
-	switch (output_descriptor) {
+	const int output_fd = ::open(output, flags, mode);
+	switch (output_fd) {
 		case -1:
 			throw Error("Unable to open output file: %s: %m", output);
 		case 1:
 			break;
 		default:
-			::close(output_descriptor);
+			::close(output_fd);
 			throw Error("Cannot redirect standard output to: %s", out_file);
 	}
 
 	// Also send standard error to the same log file.
-	const int error_descriptor = ::dup(1);
-	switch (error_descriptor) {
+	const int error_fd = ::dup(1);
+	switch (error_fd) {
 		case -1:
 			Error("Unable to dup output descriptor to error descriptor: %m");
 		case 2:
 			break;
 		default:
-			::close(error_descriptor);
+			::close(error_fd);
 			throw Error("Cannot dup output descriptor to standard error descriptor");
 	}
 }
