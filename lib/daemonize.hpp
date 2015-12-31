@@ -21,8 +21,7 @@ void daemonize(const $::string &out_file, const $::string &chdir_path throw(Erro
 			// invoking local variables' destructors. Only global variables are
 			// destroyed.
 			::exit(0);
-		}
-		else {
+		} else {
 			throw Error("First fork failed: %m");
 		}
 	}
