@@ -11,11 +11,11 @@
 
 namespace meave {
 
-void daemonize(const $::string &out_file, const $::string &chdir_path throw(Error) {
+void daemonize(const $::string &out_file, const $::string &chdir_path) throw(Error) {
 	// Fork the process and have the parent exit. If the process was started
 	// from a shell, this returns control to the user. Forking a new process is
 	// also a prerequisite for the subsequent call to setsid().
-	if (const ::pid_t pid = fork())	{
+	if (const ::pid_t pid = ::fork()) {
 		if (pid > 0) {
 			// We're in the parent process and need to exit.
 			//
@@ -50,7 +50,7 @@ void daemonize(const $::string &out_file, const $::string &chdir_path throw(Erro
 	::umask(0);
 
 	// A second fork ensures the process cannot acquire a controlling terminal.
-	if (const ::pid_t pid = fork()) {
+	if (const ::pid_t pid = ::fork()) {
 		if (pid > 0) {
 			::exit(0);
 		} else {
