@@ -1,0 +1,8 @@
+#ifndef MEAVE_MATH_FUNCS_APPROX_HPP_INCLUDED
+#	define MEAVE_MATH_FUNCS_APPROX_HPP_INCLUDED
+
+extern "C" {
+#	include "funcs_approx.h"
+}
+
+#endif // MEAVE_MATH_FUNCS_APPROX_HPP_INCLUDED
