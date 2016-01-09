@@ -10,8 +10,36 @@
 	.type	exp_pade22,@function
 	.align	16
 exp_pade22:
+	#rdi -- pointer to dst array
+	#rsi -- pointer to src array
+	#rdx -- length of the array (number of floats)
 
-	ret
+	vxorps %ymm0, %ymm0, %ymm0 # ymm0 == 0
+	vmovaps ($.plus_six), %ymm1
+	vmovaps ($.minus_six), %ymm2
+
+	mov %rdx, %r11
+	shr $0x3, %r11
+
+1:	je 2f
+
+	vmovups (%rdi, %rdx, 4), %ymm3
+	vmovaps %ymm3, %ymm4
+	vmovaps %ymm3, %ymm5
+
+	vfmadd132ps %ymm3, %ymm1, %ymm4 # %ymm3 * %ymm4 + %ymm1 -> %ymm4
+	vfmadd132ps %ymm1, %ymm4, %ymm3
+	vfmadd132ps %ymm2, %ymm4, %ymm5
+	vrcpps %ymm5, %ymm5
+	vfmadd132ps %ymm5, %ymm0, %ymm3
+
+	movups %ymm3, (%rdi, %rdx, 4)
+
+	lea 0x8(%rdx), %rdx
+	dec %r11
+	jmp 1b
+
+2: 	ret
 
 .align 32
 .plus_six:  +6.0f, +6.0f, +6.0f, +6.0f,    +6.0f, +6.0f, +6.0f, +6.0f
