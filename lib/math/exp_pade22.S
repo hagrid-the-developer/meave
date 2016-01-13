@@ -23,17 +23,17 @@ exp_pade22:
 
 1:	je 2f
 
-	vmovups (%rdi, %rdx, 4), %ymm3
+	vmovaps (%rsi, %rdx, 4), %ymm3
 	vmovaps %ymm3, %ymm4
 	vmovaps %ymm3, %ymm5
 
 	vfmadd132ps %ymm3, %ymm1, %ymm4 # %ymm3 * %ymm4 + %ymm1 -> %ymm4
-	vfmadd132ps %ymm1, %ymm4, %ymm3
-	vfmadd132ps %ymm2, %ymm4, %ymm5
-	vrcpps %ymm5, %ymm5
-	vfmadd132ps %ymm5, %ymm0, %ymm3
+	vfmadd132ps %ymm1, %ymm4, %ymm3 # %ymm1 * %ymm3 + %ymm4 -> %ymm3
+	vfmadd132ps %ymm2, %ymm4, %ymm5 # %ymm2 * %ymm5 + %ymm4 -> %ymm5
+	vrcpps %ymm5, %ymm5             # 1/%ymm5 -> %ymm5
+	vfmadd132ps %ymm5, %ymm0, %ymm3 # %ymm5 * %ymm3 + 0 -> %ymm3
 
-	movups %ymm3, (%rdi, %rdx, 4)
+	vmovaps %ymm3, (%rdi, %rdx, 4)
 
 	lea 0x8(%rdx), %rdx
 	dec %r11
@@ -42,5 +42,7 @@ exp_pade22:
 2: 	ret
 
 .align 32
-.plus_six:  +6.0f, +6.0f, +6.0f, +6.0f,    +6.0f, +6.0f, +6.0f, +6.0f
-.minus_six: -6.0f, -6.0f, -6.0f, -6.0f,    -6.0f, -6.0f, -6.0f, -6.0f
+.plus_six:
+	.float +6.0, +6.0, +6.0, +6.0,    +6.0, +6.0, +6.0, +6.0
+.minus_six:
+	.float -6.0, -6.0, -6.0, -6.0,    -6.0, -6.0, -6.0, -6.0
