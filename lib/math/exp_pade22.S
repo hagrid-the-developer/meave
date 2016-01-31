@@ -15,6 +15,7 @@ exp_pade22:
 	#rdx -- length of the array (number of floats)
 
 	vxorps %ymm0, %ymm0, %ymm0 # ymm0 == 0
+	vmovaps plus_twelve(%rip), %ymm6
 	vmovaps plus_six(%rip), %ymm1
 	vmovaps minus_six(%rip), %ymm2
 
@@ -27,7 +28,7 @@ exp_pade22:
 	vmovaps %ymm3, %ymm4
 	vmovaps %ymm3, %ymm5
 
-	vfmadd132ps %ymm3, %ymm1, %ymm4 # %ymm3 * %ymm4 + %ymm1 -> %ymm4
+	vfmadd132ps %ymm3, %ymm6, %ymm4 # %ymm3 * %ymm4 + %ymm1 -> %ymm4
 	vfmadd132ps %ymm1, %ymm4, %ymm3 # %ymm1 * %ymm3 + %ymm4 -> %ymm3
 	vfmadd132ps %ymm2, %ymm4, %ymm5 # %ymm2 * %ymm5 + %ymm4 -> %ymm5
 	vrcpps %ymm5, %ymm5             # 1/%ymm5 -> %ymm5
@@ -42,6 +43,8 @@ exp_pade22:
 2: 	ret
 
 .align 32
+plus_twelve:
+	.float +12.0, +12.0, +12.0, +12.0,    +12.0, +12.0, +12.0, +12.0
 plus_six:
 	.float +6.0, +6.0, +6.0, +6.0,    +6.0, +6.0, +6.0, +6.0
 minus_six:
