@@ -18,13 +18,12 @@ exp_pade22:
 	vmovaps plus_six(%rip), %ymm1
 	vmovaps minus_six(%rip), %ymm2
 
-	mov %rdx, %r11
-	shr $0x3, %r11
-	xor %rdx, %rdx
+	xor %r11, %r11
+	shr $0x3, %rdx
 
 1:	je 2f
 
-	vmovaps (%rsi, %rdx, 4), %ymm3
+	vmovaps (%rsi, %r11, 4), %ymm3
 	vmovaps %ymm3, %ymm4
 	vmovaps %ymm3, %ymm5
 
@@ -34,10 +33,10 @@ exp_pade22:
 	vrcpps %ymm5, %ymm5             # 1/%ymm5 -> %ymm5
 	vfmadd132ps %ymm5, %ymm0, %ymm3 # %ymm5 * %ymm3 + 0 -> %ymm3
 
-	vmovaps %ymm3, (%rdi, %rdx, 4)
+	vmovaps %ymm3, (%rdi, %r11, 4)
 
-	lea 0x8(%rdx), %rdx
-	dec %r11
+	lea 0x8(%r11), %r11
+	dec %rdx
 	jmp 1b
 
 2: 	ret
