@@ -20,6 +20,7 @@ Config::Config() throw()
 ,	working_directory_("/var/run/me/po")
 ,	num_processes_(1)
 ,	nice_(0)
+,	mode_(MODE_SERVER)
 ,	port_(0)
 ,	no_daemon_(false) {
 }
@@ -44,6 +45,8 @@ bool Config::parse(const int argc, const char * const argv[]) throw() {
 	visible_conf_file_options.add_options()
 	("port"         , value(&port_)->required(), "TCP port to listen on")
 	("pid-file"     , value(&pid_file_)->required(), "PID file")
+	("nice"         , value(&nice_)->default_value(nice_), "Nice")
+	("mode"         , value(&mode_)->default_value(mode_), "Mode")
 	("no-daemon"    , bool_switch(&no_daemon_)->default_value(no_daemon_), "don't daemonize")
 	;
 
@@ -129,6 +132,10 @@ int Config::nice() const noexcept {
 	return nice_;
 }
 
+Config::Mode Config::mode() const noexcept {
+	return mode_;
+}
+
 ::uint16_t Config::port() const noexcept {
 	return port_;
 }
@@ -151,7 +158,44 @@ $::ostream& operator<<($::ostream &o, const Config &$) {
 		 << "num-processes:" << $.num_processes() << $::endl
 		 << "nice:" << $.nice() << $::endl
 		 << "port:" << $.port() << $::endl
+		 << "mode:" << $.mode() << $::endl
 		 << "no-daemon:" << $.no_daemon();
+}
+
+$::ostream& operator<<($::ostream &o, const Config::Mode&$) {
+	switch ($) {
+	case Config::MODE_PROXY:
+		return o << "PROXY";
+	case Config::MODE_CLIENT:
+		return o << "CLIENT";
+	case Config::MODE_SERVER:
+		return o << "SERVER";
+	}
+}
+
+$::istream& operator>>($::istream &i, Config::Mode&$) {
+	$::string nm;
+	i >> nm;
+
+	if (!nm.empty()) {
+		switch (nm[0]) {
+		case 's':
+		case 'S':
+			$ = Config::MODE_SERVER;
+			return i;
+		case 'c':
+		case 'C':
+			$ = Config::MODE_CLIENT;
+			return i;
+		case 'p':
+		case 'P':
+			$ = Config::MODE_PROXY;
+			return i;
+		}
+	}
+
+	i.setstate($::ios_base::failbit);
+	return i;
 }
 
 } } /* namespace meave::examples */
