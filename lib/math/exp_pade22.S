@@ -6,6 +6,8 @@
 # * http://software-lisc.fbk.eu/avx_mathfun/avx_mathfun.h 
 # * https://en.wikipedia.org/wiki/FMA_instruction_set
 
+# FIXME: Use broadcast...
+
 	.globl	exp_pade22
 	.type	exp_pade22,@function
 	.align	16

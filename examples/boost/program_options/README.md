@@ -1,4 +1,4 @@
-Example of usage of boost::program_options
+Example usage of boost::program_options
 ==========================================
 
 This app doesn't do anything usefull, it only reads command-line options and config file, dump the configuration and exits.
