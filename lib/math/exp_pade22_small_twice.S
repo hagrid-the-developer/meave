@@ -21,38 +21,34 @@ exp_pade22:
 	vbroadcastss plus_six(%rip), %ymm1
 	vbroadcastss minus_six(%rip), %ymm2
 	vbroadcastss min_val(%rip), %ymm15
-	vbroadcastss max_val(%rip), %ymm14
+	vbroadcastss max_val(%rip), %ymm2
 
 	xor %r11, %r11
-	shr $0x3, %rdx
+	shr $0x4, %rdx
 
 1:	je 2f
 
-	# FIXME: We calculate approx in wrong way,
-	#  2^int(x) + pade22(x - int(x)) isn't fully correct.
-	# Try top use fma instead of vsub, vadd .	
 	vmovaps (%rsi, %r11, 4), %ymm3
-	vminps %ymm14, %ymm3, %ymm3
-	vmaxps %ymm15, %ymm3, %ymm3
-	vcvtps2dq %ymm3, %ymm13
-	vsubps %ymm13, %ymm3, %ymm3
-	vcvtdq2ps %ymm13, %ymm13
-	vpslld $23, %ymm13, %ymm13
-
+	vmovaps 0x20(%rsi, %r11, 4), %ymm10
+	
 	vmovaps %ymm3, %ymm4
+	vmovaps %ymm10, %ymm11
 	vmovaps %ymm3, %ymm5
+	vmovaps %ymm10, %ymm12
 
 	vfmadd132ps %ymm3, %ymm6, %ymm4 # %ymm3 * %ymm4 + %ymm1 -> %ymm4
+	vfmadd132ps %ymm10, %ymm13, %ymm11 # %ymm3 * %ymm4 + %ymm1 -> %ymm4
 	vfmadd132ps %ymm1, %ymm4, %ymm3 # %ymm1 * %ymm3 + %ymm4 -> %ymm3
+	vfmadd132ps %ymm1, %ymm11, %ymm10 # %ymm1 * %ymm3 + %ymm4 -> %ymm3
 	vfmadd132ps %ymm2, %ymm4, %ymm5 # %ymm2 * %ymm5 + %ymm4 -> %ymm5
+	vfmadd132ps %ymm2, %ymm11, %ymm12 # %ymm2 * %ymm5 + %ymm4 -> %ymm5
 	vrcpps %ymm5, %ymm5             # 1/%ymm5 -> %ymm5
 	vrcpps %ymm12, %ymm12             # 1/%ymm5 -> %ymm5
 	vfmadd132ps %ymm12, %ymm0, %ymm10 # %ymm5 * %ymm3 + 0 -> %ymm3
 
-	vaddps %ymm13, %ymm3, %ymm3
 	vmovaps %ymm3, (%rdi, %r11, 4)
 
-	lea 0x8(%r11), %r11
+	lea 0x10(%r11), %r11
 	dec %rdx
 	jmp 1b
 
