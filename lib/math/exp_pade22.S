@@ -22,6 +22,8 @@ exp_pade22:
 	vbroadcastss minus_six(%rip), %ymm2
 	vbroadcastss min_val(%rip), %ymm15
 	vbroadcastss max_val(%rip), %ymm14
+	vbroadcastss max_val(%rip), %ymm14
+	vbroadcastss mantissa_add(%rip), %ymm12
 
 	xor %r11, %r11
 	shr $0x3, %rdx
@@ -35,21 +37,22 @@ exp_pade22:
 	vminps %ymm14, %ymm3, %ymm3
 	vmaxps %ymm15, %ymm3, %ymm3
 	vcvtps2dq %ymm3, %ymm13
-	vsubps %ymm13, %ymm3, %ymm3
-	vcvtdq2ps %ymm13, %ymm13
+	vcvtdq2ps %ymm13, %ymm4
+	vsubps %ymm4, %ymm3, %ymm3
+
+	vpaddd %ymm12, %ymm13, %ymm13
 	vpslld $23, %ymm13, %ymm13
 
 	vmovaps %ymm3, %ymm4
 	vmovaps %ymm3, %ymm5
 
-	vfmadd132ps %ymm3, %ymm6, %ymm4 # %ymm3 * %ymm4 + %ymm1 -> %ymm4
+	vfmadd132ps %ymm3, %ymm6, %ymm4 # %ymm3 * %ymm4 + %ymm6 -> %ymm4
 	vfmadd132ps %ymm1, %ymm4, %ymm3 # %ymm1 * %ymm3 + %ymm4 -> %ymm3
 	vfmadd132ps %ymm2, %ymm4, %ymm5 # %ymm2 * %ymm5 + %ymm4 -> %ymm5
 	vrcpps %ymm5, %ymm5             # 1/%ymm5 -> %ymm5
-	vrcpps %ymm12, %ymm12             # 1/%ymm5 -> %ymm5
-	vfmadd132ps %ymm12, %ymm0, %ymm10 # %ymm5 * %ymm3 + 0 -> %ymm3
+	vfmadd132ps %ymm5, %ymm0, %ymm3 # %ymm5 * %ymm3 + 0 -> %ymm3
 
-	vaddps %ymm13, %ymm3, %ymm3
+	vfmadd132ps %ymm13, %ymm0, %ymm3 # %ymm13 * %ymm3 + 0 -> %ymm3
 	vmovaps %ymm3, (%rdi, %r11, 4)
 
 	lea 0x8(%r11), %r11
@@ -67,4 +70,6 @@ minus_six:
 min_val:
 	.float -127.0
 max_val:
-	.float +128
+	.float +128.0
+mantissa_add:
+	.int 127
