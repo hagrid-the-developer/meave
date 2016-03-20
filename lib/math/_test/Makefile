@@ -15,7 +15,7 @@ LINK.o = $(CXX) -o $@ $^
 all: run.test-exp-pade22 run.test-exp2-taylor4
 
 clean:
-	rm -v *.o test-exp-pade22 test-exp2-taylor4
+	rm -vf *.o test-exp-pade22 test-exp2-taylor4
 
 run.test-exp-pade22: test-exp-pade22
 	./test-exp-pade22

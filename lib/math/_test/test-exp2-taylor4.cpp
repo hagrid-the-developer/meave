@@ -35,10 +35,18 @@ void test() {
 		$::cerr << "taylor4: " << (e2 - b2) << $::endl;
 	}
 
+	float max_abs_err = 0.f;
+	float max_rel_err = 0.f;
 	$::cout << "Value" << '|' << "Exp" << '|' << "Pade22" << $::endl;
 	for (uns i = 0; i < ARRAY_LEN; ++i) {
 		$::cout << src[i] << '|' << dst_exp2f[i] << '|' << dst_exp2_taylor[i] << $::endl;
+		const float abs_err = ::fabs(dst_exp2f[i] - dst_exp2_taylor[i]);
+		const float rel_err = abs_err / dst_exp2f[i];
+		max_abs_err = $::max(abs_err, max_abs_err);
+		max_rel_err = $::max(rel_err, max_rel_err);
+
 	}
+	$::cerr << "Max abs-err:" << max_abs_err << "; rel-err:" << max_rel_err << $::endl;
 }
 
 } /* anonymous namespace */
