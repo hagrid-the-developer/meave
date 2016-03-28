@@ -9,11 +9,11 @@ exp2_taylor:
 	#rdx -- length of the array (number of floats)
 
 	xor %r11, %r11
+	mov %rdx, %r12
 	shr $0x5, %rdx
 
 1:	je 2f
 
-# +0
 	vmovaps 0x0(%rsi, %r11, 4), %ymm0
 	vmovaps 0x20(%rsi, %r11, 4), %ymm3
 	vmovaps 0x40(%rsi, %r11, 4), %ymm6
@@ -79,15 +79,40 @@ exp2_taylor:
 	vmovaps %ymm6, 0x40(%rdi, %r11, 4)
 	vmovaps %ymm9, 0x60(%rdi, %r11, 4)
 
-# +1
-# +2
-# +3
-
 	lea 0x20(%r11), %r11
 	dec %rdx
 	jmp 1b
 
-2: 	ret
+2: 	mov %r12, %rdx
+	and $0x1F, %rdx
+	shr $0x3, %rdx
+
+1:	je 2f
+	vmovaps 0x0(%rsi, %r11, 4), %ymm0
+	vminps max_val(%rip), %ymm0, %ymm0
+	vmaxps min_val(%rip), %ymm0, %ymm0
+	vcvtps2dq %ymm0, %ymm2
+	vcvtdq2ps %ymm2, %ymm1
+	vsubps %ymm1, %ymm0, %ymm1
+
+	vpaddd mantissa_add(%rip), %ymm2, %ymm2
+	vpslld $23, %ymm2, %ymm0
+
+	vmovaps L4(%rip), %ymm2 # L4 -> %ymm2
+
+	vfmadd213ps L3(%rip), %ymm1, %ymm2
+	vfmadd213ps L2(%rip), %ymm1, %ymm2
+	vfmadd213ps L1(%rip), %ymm1, %ymm2
+	vfmadd213ps one(%rip), %ymm1, %ymm2
+
+	vmulps %ymm0, %ymm2, %ymm0
+	vmovaps %ymm0, 0x0(%rdi, %r11, 4)
+
+	lea 0x8(%r11), %r11
+	dec %rdx
+	jmp 1b
+
+2:	ret
 
 	.align	32
 mantissa_add:

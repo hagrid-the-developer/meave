@@ -6,7 +6,7 @@
 #include <meave/lib/utils.hpp>
 #include <meave/lib/raii/mmap_pointer.hpp>
 
-#define ARRAY_LEN (200*1024)
+#define ARRAY_LEN (200*1024 + 24)
 
 namespace {
 
