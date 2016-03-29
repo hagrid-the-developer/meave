@@ -9,7 +9,7 @@ exp2_taylor:
 	#rdx -- length of the array (number of floats)
 
 	xor %r11, %r11
-	mov %rdx, %r12
+	mov %rdx, %r10
 	shr $0x5, %rdx
 
 1:	je 2f
@@ -83,7 +83,7 @@ exp2_taylor:
 	dec %rdx
 	jmp 1b
 
-2: 	mov %r12, %rdx
+2: 	mov %r10, %rdx
 	and $0x1F, %rdx
 	shr $0x3, %rdx
 
