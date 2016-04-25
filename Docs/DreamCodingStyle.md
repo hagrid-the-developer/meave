@@ -106,5 +106,8 @@ Dream Coding Style (C++)
 			int _;
 		public:
 			// ...
-		}; 
+		};
+
+
+* Use debug logs. When project becomes larger, it can help you to understand how it works.
 
