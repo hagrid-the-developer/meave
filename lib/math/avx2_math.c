@@ -306,6 +306,7 @@ _PS256_CONST(coscof_p2,  4.166664568298827E-002);
 _PS256_CONST(cephes_FOPI, 1.27323954473516); // 4 / M_PI
 
 
+// sin like functions are using some unknown intrinsic
 #if 0
 /* evaluation of 8 sines at onces using AVX intrisics
 
