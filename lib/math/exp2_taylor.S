@@ -99,7 +99,6 @@ exp2_taylor:
 	vpslld $23, %ymm2, %ymm0
 
 	vmovaps L4(%rip), %ymm2 # L4 -> %ymm2
-
 	vfmadd213ps L3(%rip), %ymm1, %ymm2
 	vfmadd213ps L2(%rip), %ymm1, %ymm2
 	vfmadd213ps L1(%rip), %ymm1, %ymm2
@@ -113,6 +112,31 @@ exp2_taylor:
 	jmp 1b
 
 2:	ret
+
+
+	.globl	exp2_taylor_one
+	.type	exp2_taylor_one,@function
+	.align	16
+exp2_taylor_one:
+	vminps max_val(%rip), %ymm0, %ymm0
+	vmaxps min_val(%rip), %ymm0, %ymm0
+	vcvtps2dq %ymm0, %ymm2
+	vcvtdq2ps %ymm2, %ymm1
+	vsubps %ymm1, %ymm0, %ymm1
+
+	vpaddd mantissa_add(%rip), %ymm2, %ymm2
+	vpslld $23, %ymm2, %ymm0
+
+	vmovaps L4(%rip), %ymm2 # L4 -> %ymm2
+	vfmadd213ps L3(%rip), %ymm1, %ymm2
+	vfmadd213ps L2(%rip), %ymm1, %ymm2
+	vfmadd213ps L1(%rip), %ymm1, %ymm2
+	vfmadd213ps one(%rip), %ymm1, %ymm2
+
+	vmulps %ymm0, %ymm2, %ymm0
+
+	ret
+
 
 	.align	32
 mantissa_add:
