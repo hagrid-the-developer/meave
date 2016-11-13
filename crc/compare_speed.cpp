@@ -1,15 +1,13 @@
 #include <boost/crc.hpp>
 
 #include <algorithm>
+#include <memory>
 #include <iostream>
 
 #include "lib/utils.hpp"
 
 #include "crc/crc_test.hpp"
-
-extern "C" {
-#include "crc/funcs.h"
-}
+#include "crc/funcs.hpp"
 
 /**
  * Compares speed and return value of various functions for calculation of CRC.
@@ -58,6 +56,8 @@ int main(void) {
 	mct::measure_speed("sse42_crc32", sse42_crc32);
 	$::cerr << $::endl;
 	mct::measure_speed("crc32_intel_asm", calc_caller<crc32_intel_asm>);
+	$::cerr << $::endl;
+	mct::measure_speed("crc32_intel", calc_caller<crc32_intel>);
 	/* */
 	return 0;
 }
