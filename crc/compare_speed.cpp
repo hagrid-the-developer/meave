@@ -20,10 +20,10 @@ namespace {
 	struct CRC {
 		static const ::size_t BITS = 32;
 		static const ::uint32_t POLY = 0x1EDC6F41;
-		static const ::uint32_t INIT_REM = 0;
-		static const ::uint32_t FINAL_XOR = 0;
+		static const ::uint32_t INIT_REM = 0xFFFFFFFF;
+		static const ::uint32_t FINAL_XOR = 0xFFFFFFFF;
 		static const bool REFLECT_INPUT = true;
-		static const bool REFLECT_REMAINDER = false;
+		static const bool REFLECT_REMAINDER = true;
 
 		typedef boost::crc_optimal<BITS, POLY, INIT_REM, FINAL_XOR, REFLECT_INPUT, REFLECT_REMAINDER> Calc;
 	};
@@ -37,7 +37,7 @@ namespace {
 
 	template <CRCCalcForCaller F>
 	::uint32_t calc_caller(const ::uint8_t *arr, const ::size_t len) noexcept {
-		return F(arr, len, CRC::INIT_REM);
+		return F(arr, len, CRC::INIT_REM) ^ CRC::FINAL_XOR;
 	}
 
 } /* anonymous namespace */
@@ -48,6 +48,7 @@ int main(void) {
 	mct::init_comparisions();
 	/* */
 	mct::compare_output("crc32_intel_asm", calc_with_boost, calc_caller<crc32_intel_asm>);
+	mct::compare_output("crc32_intel", calc_with_boost, calc_caller<crc32_intel_asm>);
 	$::cerr << $::endl;
 	$::cerr << $::endl;
 	/* */
