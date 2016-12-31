@@ -21,20 +21,22 @@ void test_by_steps() {
 	}
 
 	{
+		unsigned hash = 0;
 		const double b = meave::getrealtime();
 		for (::size_t i = 0; i + STEP <= ARRAY_LEN; i += STEP) {
-			const auto hash_naive = meave::rothash::naive<13>(&src[i], STEP);
+			hash ^= meave::rothash::naive<13>(&src[i], STEP);
 		}
 		const double e = meave::getrealtime();
-		$::cerr << "step: " << STEP << "; naive: " << (e - b) << "seconds" << $::endl;
+		$::cerr << "step: " << STEP << "; naive: " << hash << "; " << (e - b) << "seconds" << $::endl;
 	}
 	{
+		unsigned hash = 0;
 		const double b = meave::getrealtime();
 		for (::size_t i = 0; i + STEP <= ARRAY_LEN; i += STEP) {
-			const auto hash_avx2 = meave::rothash::avx2(&src[i], STEP, 13);
+			hash ^= meave::rothash::avx2(&src[i], STEP, 13);
 		}
 		const double e = meave::getrealtime();
-		$::cerr << "step: " << STEP << "; avx2: " << (e - b) << "seconds" << $::endl;
+		$::cerr << "step: " << STEP << "; avx2:  " << hash << "; " << (e - b) << "seconds" << $::endl;
 	}
 }
 
@@ -55,7 +57,7 @@ void test() {
 		const double b = meave::getrealtime();
 		const auto hash_avx2 = meave::rothash::avx2(&src[0], ARRAY_LEN, 13);
 		const double e = meave::getrealtime();
-		$::cerr << "avx2: " << hash_avx2 << "; " << (e - b) << "seconds" << $::endl;
+		$::cerr << "avx2:  " << hash_avx2 << "; " << (e - b) << "seconds" << $::endl;
 	}
 }
 
@@ -78,6 +80,12 @@ main(void) {
 	test_by_steps<108>();
 	test_by_steps<256>();
 	test_by_steps<1024>();
+	test_by_steps<10000>();
+	test_by_steps<20000>();
+	test_by_steps<30000>();
+	test_by_steps<40000>();
+	test_by_steps<50000>();
+	test_by_steps<60000>();
 	test_by_steps<ARRAY_LEN>();
 	return 0;
 }
