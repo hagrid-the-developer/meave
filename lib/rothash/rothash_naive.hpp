@@ -41,8 +41,7 @@ private:
 	}
 
 	static ::uint32_t hash_aligned(const ::uint8_t *p, ::size_t len) noexcept {
-		unsigned hash = 0;
-		::uint32_t h[8];
+		::uint32_t h[8] = {};
 
 		const ::size_t L = len;
 		if (len >= 32) {
