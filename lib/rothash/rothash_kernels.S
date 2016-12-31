@@ -26,7 +26,6 @@ rothash_kernel_avx2:
 
 	mov %rsi, %rdx
 	shr $0x5, %rdx # length / 32 -> %rdx
-
 	jz 2f
 1:	vpslld %xmm0, %ymm2, %ymm3
 	vpsrld %xmm1, %ymm2, %ymm2
@@ -50,7 +49,7 @@ rothash_kernel_avx2:
 	movups (%rdi), %xmm3
 	vpxor %xmm3, %xmm2, %xmm2
 	# Join two 64bit vals to one 64bit val
-	movlhps %xmm2, %xmm3
+	movhlps %xmm2, %xmm3
 	vpxor %xmm2, %xmm3, %xmm2
 	lea 16(%rdi), %rdi
 	sub $0x10, %rsi
@@ -61,10 +60,10 @@ rothash_kernel_avx2:
 	vpslld %xmm0, %xmm2, %xmm3
 	vpsrld %xmm1, %xmm2, %xmm2
 	vpor %xmm2, %xmm3, %xmm2
-	movhps (%rdi), %xmm3
+	movq (%rdi), %xmm3
 	vpxor %xmm3, %xmm2, %xmm2
 	# Join two 32bits vals to one 32bit val
-	vpsllq $0x20, %xmm2, %xmm3
+	vpsrlq $0x20, %xmm2, %xmm3
 	vpxor %xmm2, %xmm3, %xmm2
 	lea 8(%rdi), %rdi
 	sub $0x8, %rsi

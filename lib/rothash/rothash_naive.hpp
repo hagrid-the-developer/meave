@@ -36,19 +36,63 @@ const typename HashBase<T>::MaskBits HashBase<T>::mask;
 template <unsigned ROL_BITS>
 class HashFunc : public aux::HashBase<unsigned> {
 private:
-	static unsigned rol(const unsigned x) noexcept {
+	static ::uint32_t rol(const ::uint32_t x) noexcept {
 		return (x << ROL_BITS) | (x >> (sizeof(x)*8 - ROL_BITS));
 	}
 
-	static unsigned hash_aligned(const ::uint8_t *p, const ::size_t len) noexcept {
+	static ::uint32_t hash_aligned(const ::uint8_t *p, ::size_t len) noexcept {
 		unsigned hash = 0;
-		const unsigned *u = reinterpret_cast<const unsigned*>(p);
+		::uint32_t h[8];
+
+		const ::size_t L = len;
+		if (len >= 32) {
+			do {
+				const ::uint32_t *u = reinterpret_cast<const ::uint32_t*>(&p[L - len]);
+				h[0] = rol(h[0]) ^ u[0];
+				h[1] = rol(h[1]) ^ u[1];
+				h[2] = rol(h[2]) ^ u[2];
+				h[3] = rol(h[3]) ^ u[3];
+				h[4] = rol(h[4]) ^ u[4];
+				h[5] = rol(h[5]) ^ u[5];
+				h[6] = rol(h[6]) ^ u[6];
+				h[7] = rol(h[7]) ^ u[7];
+			} while ((len -= 32) >= 32);
+			h[0] = h[0] ^ h[4];
+			h[1] = h[1] ^ h[5];
+			h[2] = h[2] ^ h[6];
+			h[3] = h[3] ^ h[7];
+		}
+		if (len >= 16) {
+			const ::uint32_t *u = reinterpret_cast<const unsigned*>(&p[L - len]);
+			h[0] = rol(h[0]) ^ u[0];
+			h[1] = rol(h[1]) ^ u[1];
+			h[2] = rol(h[2]) ^ u[2];
+			h[3] = rol(h[3]) ^ u[3];
+			h[0] = h[0] ^ h[2];
+			h[1] = h[1] ^ h[3];
+			len -= 16;
+		}
+		if (len >= 8) {
+			const ::uint32_t *u = reinterpret_cast<const unsigned*>(&p[L - len]);
+			h[0] = rol(h[0]) ^ u[0];
+			h[1] = rol(h[1]) ^ u[1];
+			h[0] = h[0] ^ h[1];
+			len -= 8;
+		}
+		if (len >= 4) {
+			const ::uint32_t *u = reinterpret_cast<const unsigned*>(&p[L - len]);
+			h[0] = rol(h[0]) ^ u[0];
+			len -= 4;
+		}
+		assert(!len);
+/*
 		::size_t l = len;
 		for (; l >= sizeof(unsigned); l -= sizeof(unsigned)) {
 			hash = rol(hash) ^ *u++;
 		}
 		hash = rol(hash) ^ (*u & mask.bits[l]);
-		return hash;
+*/
+		return h[0];
 	}
 
 	static unsigned hash_unaligned(const ::uint8_t *p, const ::size_t len) noexcept {
