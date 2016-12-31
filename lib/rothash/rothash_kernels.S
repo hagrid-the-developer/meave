@@ -39,35 +39,35 @@ rothash_kernel_avx2:
 	vextractf128 $1, %ymm2, %xmm3
 	vpxor %xmm2, %xmm3, %xmm2
 2:	and $0x1F, %rsi # length mod 32 -> %rsi
+	# Process 16bytes
 	mov %rsi, %rdx
 	shr $0x4, %rdx # (length mod 32) / 16 -> %rdx
 	jz 3f
-	# Process 16bytes
 	vpslld %xmm0, %xmm2, %xmm3
 	vpsrld %xmm1, %xmm2, %xmm2
 	vpor %xmm2, %xmm3, %xmm2
 	movups (%rdi), %xmm3
 	vpxor %xmm3, %xmm2, %xmm2
-	# Join two 64bit vals to one 64bit val
-	movhlps %xmm2, %xmm3
-	vpxor %xmm2, %xmm3, %xmm2
 	lea 16(%rdi), %rdi
 	sub $0x10, %rsi
-3:	mov %rsi, %rdx
+	# Join two 64bit vals to one 64bit val
+3:	movhlps %xmm2, %xmm3
+	vpxor %xmm2, %xmm3, %xmm2
+	# Process 8 bytes
+	mov %rsi, %rdx
 	shr $0x3, %rdx
 	je 4f
-	# Process 8 bytes
 	vpslld %xmm0, %xmm2, %xmm3
 	vpsrld %xmm1, %xmm2, %xmm2
 	vpor %xmm2, %xmm3, %xmm2
 	movq (%rdi), %xmm3
 	vpxor %xmm3, %xmm2, %xmm2
-	# Join two 32bits vals to one 32bit val
-	vpsrlq $0x20, %xmm2, %xmm3
-	vpxor %xmm2, %xmm3, %xmm2
 	lea 8(%rdi), %rdi
 	sub $0x8, %rsi
-4:	mov %rsi, %rdx
+	# Join two 32bit vals to one 32bit val
+4:	vpsrlq $0x20, %xmm2, %xmm3
+	vpxor %xmm2, %xmm3, %xmm2
+	mov %rsi, %rdx
 	shr $0x2, %rdx
 	je 5f
 	# Process 4 bytes

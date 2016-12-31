@@ -67,17 +67,17 @@ private:
 			h[1] = rol(h[1]) ^ u[1];
 			h[2] = rol(h[2]) ^ u[2];
 			h[3] = rol(h[3]) ^ u[3];
-			h[0] = h[0] ^ h[2];
-			h[1] = h[1] ^ h[3];
 			len -= 16;
 		}
+		h[0] = h[0] ^ h[2];
+		h[1] = h[1] ^ h[3];
 		if (len >= 8) {
 			const ::uint32_t *u = reinterpret_cast<const unsigned*>(&p[L - len]);
 			h[0] = rol(h[0]) ^ u[0];
 			h[1] = rol(h[1]) ^ u[1];
-			h[0] = h[0] ^ h[1];
 			len -= 8;
 		}
+		h[0] = h[0] ^ h[1];
 		if (len >= 4) {
 			const ::uint32_t *u = reinterpret_cast<const unsigned*>(&p[L - len]);
 			h[0] = rol(h[0]) ^ u[0];
