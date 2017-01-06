@@ -35,7 +35,16 @@ void test() {
 		unsigned hash = 0;
 		const double b = meave::getrealtime();
 		for (::size_t i = 0; i + step <= ARRAY_LEN; i += step) {
-			hash ^= meave::rothash::avx2(&src[i], step, 13);
+			hash ^= meave::rothash::asm_avx2(&src[i], step, 13);
+		}
+		const double e = meave::getrealtime();
+		$::cerr << "step: " << $::setw(8) << $::right << step << "; asm_avx2:  " << hash << "; " << (e - b) << "seconds" << $::endl;
+	}
+	{
+		unsigned hash = 0;
+		const double b = meave::getrealtime();
+		for (::size_t i = 0; i + step <= ARRAY_LEN; i += step) {
+			hash ^= meave::rothash::avx2<13>(&src[i], step);
 		}
 		const double e = meave::getrealtime();
 		$::cerr << "step: " << $::setw(8) << $::right << step << "; avx2:  " << hash << "; " << (e - b) << "seconds" << $::endl;

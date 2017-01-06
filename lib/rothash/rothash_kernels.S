@@ -19,7 +19,7 @@ rothash_kernel_avx2:
 	#rdx -- rol bits
 
 	movq %rdx, %xmm0 # shift left -> %xmm0
-	mov $0x20, %r11
+	movq $0x20, %r11
 	sub %rdx, %r11
 	movq %r11, %xmm1  # 8*sizeof(uns) - rol_bits -> %xmm1
 	vpxor %ymm2, %ymm2, %ymm2 # Initialise hash value
