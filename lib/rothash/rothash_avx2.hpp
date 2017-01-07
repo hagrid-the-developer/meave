@@ -68,14 +68,14 @@ private:
 		if (__builtin_expect(len >= 32, 0)) {
 			do {
 				hash = rol(hash);
-				meave::vec::AVX u {.f8_ = _mm256_loadu_ps(reinterpret_cast<const float*>(&p[L - len]))};
+				meave::vec::AVX u {.i8_ = _mm256_lddqu_si256(reinterpret_cast<const __m256i*>(&p[L - len]))};
 				hash.i8_ = _mm256_xor_si256(hash.i8_, u.i8_);
 			} while (__builtin_expect((len -= 32) >= 32, 0));
 			hash.sse_[0].i4_ = _mm_xor_si128(hash.sse_[0].i4_, hash.sse_[1].i4_);
 		}
 		if (__builtin_expect(len >= 16, 0)) {
 			hash = rol(hash);
-			meave::vec::AVX u {.sse_ = {{.f4_ = _mm_loadu_ps(reinterpret_cast<const float*>(&p[L - len]))}, {.f4_ = _mm_setzero_ps()}}};
+			meave::vec::AVX u {.sse_ = {{.i4_ = _mm_lddqu_si128(reinterpret_cast<const __m128i*>(&p[L - len]))}, {.f4_ = _mm_setzero_ps()}}};
 			hash.i8_ = _mm256_xor_si256(hash.i8_, u.i8_);
 			len -= 16;
 		}
