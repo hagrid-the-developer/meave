@@ -62,35 +62,34 @@ private:
 
 	static ::uint32_t hash_aligned(const ::uint8_t *p, ::size_t len) noexcept {
 		meave::vec::AVX hash;
-		meave::vec::AVX u;
 
 		hash.f8_ = _mm256_xor_ps(hash.f8_, hash.f8_);
 		const ::size_t L = len;
-		if (len >= 32) {
+		if (__builtin_expect(len >= 32, 0)) {
 			do {
 				hash = rol(hash);
-				u.f8_ = _mm256_loadu_ps(reinterpret_cast<const float*>(&p[L - len]));
+				meave::vec::AVX u {.f8_ = _mm256_loadu_ps(reinterpret_cast<const float*>(&p[L - len]))};
 				hash.i8_ = _mm256_xor_si256(hash.i8_, u.i8_);
-			} while ((len -= 32) >= 32);
+			} while (__builtin_expect((len -= 32) >= 32, 0));
 			hash.sse_[0].i4_ = _mm_xor_si128(hash.sse_[0].i4_, hash.sse_[1].i4_);
 		}
-		if (len >= 16) {
+		if (__builtin_expect(len >= 16, 0)) {
 			hash = rol(hash);
-			u.sse_[0].f4_ = _mm_loadu_ps(reinterpret_cast<const float*>(&p[L - len]));
+			meave::vec::AVX u {.sse_ = {{.f4_ = _mm_loadu_ps(reinterpret_cast<const float*>(&p[L - len]))}, {.f4_ = _mm_setzero_ps()}}};
 			hash.i8_ = _mm256_xor_si256(hash.i8_, u.i8_);
 			len -= 16;
 		}
 		hash.qw_[0] ^= hash.qw_[1];
-		if (len >= 8) {
+		if (__builtin_expect(len >= 8, 1)) {
 			hash = rol(hash);
-			u.qw_[0] = *reinterpret_cast<const ::uint64_t*>(&p[L - len]);
+			meave::vec::AVX u{.qw_ = {*reinterpret_cast<const ::uint64_t*>(&p[L - len]), 0, 0, 0}};
 			hash.i8_ = _mm256_xor_si256(hash.i8_, u.i8_);
 			len -= 8;
 		}
 		hash.dw_[0] ^= hash.dw_[1];
-		if (len >= 4) {
+		if (__builtin_expect(len >= 4, 1)) {
 			hash = rol(hash);
-			u.dw_[0] = *reinterpret_cast<const ::uint32_t*>(&p[L - len]);
+			meave::vec::AVX u{.dw_ = {*reinterpret_cast<const ::uint32_t*>(&p[L - len]), 0, 0, 0, 0, 0, 0, 0}};
 			hash.i8_ = _mm256_xor_si256(hash.i8_, u.i8_);
 			len -= 4;
 		}
