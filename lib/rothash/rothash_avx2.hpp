@@ -82,14 +82,14 @@ private:
 		hash.qw_[0] ^= hash.qw_[1];
 		if (__builtin_expect(len >= 8, 1)) {
 			hash = rol(hash);
-			meave::vec::AVX u{.qw_ = {*reinterpret_cast<const ::uint64_t*>(&p[L - len]), 0, 0, 0}};
+			meave::vec::AVX u{.i8_ = _mm256_broadcastq_epi64(*reinterpret_cast<const __m128i*>(&p[L - len]))};
 			hash.i8_ = _mm256_xor_si256(hash.i8_, u.i8_);
 			len -= 8;
 		}
 		hash.dw_[0] ^= hash.dw_[1];
 		if (__builtin_expect(len >= 4, 1)) {
 			hash = rol(hash);
-			meave::vec::AVX u{.dw_ = {*reinterpret_cast<const ::uint32_t*>(&p[L - len]), 0, 0, 0, 0, 0, 0, 0}};
+			meave::vec::AVX u{.f8_ = _mm256_set1_ps(*reinterpret_cast<const float*>(&p[L - len]))};
 			hash.i8_ = _mm256_xor_si256(hash.i8_, u.i8_);
 			len -= 4;
 		}
