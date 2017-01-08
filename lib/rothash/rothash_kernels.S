@@ -18,17 +18,17 @@ rothash_kernel_avx2:
 	#rsi -- length of the array (number of bytes)
 	#rdx -- rol bits
 
-	movq %rdx, %xmm0 # shift left -> %xmm0
-	movq $0x20, %r11
-	sub %rdx, %r11
-	movq %r11, %xmm1  # 8*sizeof(uns) - rol_bits -> %xmm1
-	vpxor %ymm2, %ymm2, %ymm2 # Initialise hash value
+#	movq %rdx, %xmm0 # shift left -> %xmm0
+#	movq $0x20, %r11
+#	sub %rdx, %r11
+#	movq %r11, %xmm1  # 8*sizeof(uns) - rol_bits -> %xmm1
+#	vpxor %ymm2, %ymm2, %ymm2 # Initialise hash value
 
 	mov %rsi, %rdx
 	shr $0x5, %rdx # length / 32 -> %rdx
 	jz 2f
-1:	vpslld %xmm0, %ymm2, %ymm3
-	vpsrld %xmm1, %ymm2, %ymm2
+1:	vpslld $13, %ymm2, %ymm3
+	vpsrld $29, %ymm2, %ymm2
 	vpor %ymm2, %ymm3, %ymm2
 	vpxor (%rdi), %ymm2, %ymm2
 	lea 32(%rdi), %rdi
@@ -42,8 +42,8 @@ rothash_kernel_avx2:
 	mov %rsi, %rdx
 	shr $0x4, %rdx # (length mod 32) / 16 -> %rdx
 	jz 3f
-	vpslld %xmm0, %xmm2, %xmm3
-	vpsrld %xmm1, %xmm2, %xmm2
+	vpslld $13, %xmm2, %xmm3
+	vpsrld $29, %xmm2, %xmm2
 	vpor %xmm2, %xmm3, %xmm2
 	vpxor (%rdi), %xmm2, %xmm2
 	lea 16(%rdi), %rdi
@@ -55,8 +55,8 @@ rothash_kernel_avx2:
 	mov %rsi, %rdx
 	shr $0x3, %rdx
 	je 4f
-	vpslld %xmm0, %xmm2, %xmm3
-	vpsrld %xmm1, %xmm2, %xmm2
+	vpslld $13, %xmm2, %xmm3
+	vpsrld $29, %xmm2, %xmm2
 	vpor %xmm2, %xmm3, %xmm2
 	movq (%rdi), %xmm3
 	vpxor %xmm3, %xmm2, %xmm2
@@ -69,8 +69,8 @@ rothash_kernel_avx2:
 	shr $0x2, %rdx
 	je 5f
 	# Process 4 bytes
-	vpslld %xmm0, %xmm2, %xmm3
-	vpsrld %xmm1, %xmm2, %xmm2
+	vpslld $13, %xmm2, %xmm3
+	vpsrld $29, %xmm2, %xmm2
 	vpor %xmm2, %xmm3, %xmm2
 	movd (%rdi), %xmm3
 	vpxor %xmm3, %xmm2, %xmm2
