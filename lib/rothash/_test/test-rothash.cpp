@@ -13,15 +13,13 @@
 
 namespace {
 
-template<::size_t STEP_MIN, ::size_t STEP_MAX = STEP_MIN>
-void test() {
+void test(const ::size_t step) {
 	meave::raii::MMapPointer<::uint8_t> src{{ARRAY_LEN}};
 
 	for (uns i = 0; i < ARRAY_LEN; ++i) {
 		src[i] = int(::rand() % 128);
 	}
 
-	const ::size_t step = ((STEP_MIN + ::rand() % (STEP_MAX - STEP_MIN + 1))/4)*4;
 	{
 		unsigned hash = 0;
 		const double b = meave::getrealtime();
@@ -57,29 +55,6 @@ void test() {
 
 int
 main(int argc, char *argv[]) {
-	if (argc > 1)
-		::srand(atoi(argv[1]));
-
-	test<4>();
-	test<8>();
-	test<12>();
-	test<16>();
-	test<20>();
-	test<24>();
-	test<32>();
-	test<64>();
-	test<100>();
-	test<104>();
-	test<108>();
-	test<256>();
-	test<1024>();
-	test<10000>();
-	test<20000>();
-	test<30000>();
-	test<40000>();
-	test<50000>();
-	test<60000>();
-	test<4, 2048>();
-	test<ARRAY_LEN>();
+	test(atoi(argv[1]));
 	return 0;
 }
