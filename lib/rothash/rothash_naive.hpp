@@ -127,11 +127,101 @@ public:
 	}
 };
 
+template <unsigned ROL_BITS0, unsigned ROL_BITS1>
+class HashFunc2 : public aux::HashBase<unsigned> {
+private:
+	template <unsigned ROL_BITS>
+	static ::uint32_t rol(const ::uint32_t x) noexcept {
+		return (x << ROL_BITS) | (x >> (sizeof(x)*8 - ROL_BITS));
+	}
+
+	static ::uint64_t hash_aligned(const ::uint8_t *p, ::size_t len) noexcept {
+		::uint32_t h0[8] = {};
+		::uint32_t h1[8] = {};
+
+		const ::size_t L = len;
+		if (len >= 32) {
+			do {
+				const ::uint32_t *u = reinterpret_cast<const ::uint32_t*>(&p[L - len]);
+				h0[0] = rol<ROL_BITS0>(h0[0]) ^ u[0];
+				h0[1] = rol<ROL_BITS0>(h0[1]) ^ u[1];
+				h0[2] = rol<ROL_BITS0>(h0[2]) ^ u[2];
+				h0[3] = rol<ROL_BITS0>(h0[3]) ^ u[3];
+				h0[4] = rol<ROL_BITS0>(h0[4]) ^ u[4];
+				h0[5] = rol<ROL_BITS0>(h0[5]) ^ u[5];
+				h0[6] = rol<ROL_BITS0>(h0[6]) ^ u[6];
+				h0[7] = rol<ROL_BITS0>(h0[7]) ^ u[7];
+				h1[0] = rol<ROL_BITS1>(h1[0]) ^ u[0];
+				h1[1] = rol<ROL_BITS1>(h1[1]) ^ u[1];
+				h1[2] = rol<ROL_BITS1>(h1[2]) ^ u[2];
+				h1[3] = rol<ROL_BITS1>(h1[3]) ^ u[3];
+				h1[4] = rol<ROL_BITS1>(h1[4]) ^ u[4];
+				h1[5] = rol<ROL_BITS1>(h1[5]) ^ u[5];
+				h1[6] = rol<ROL_BITS1>(h1[6]) ^ u[6];
+				h1[7] = rol<ROL_BITS1>(h1[7]) ^ u[7];
+			} while ((len -= 32) >= 32);
+			h0[0] = h0[0] ^ h0[4];
+			h0[1] = h0[1] ^ h0[5];
+			h0[2] = h0[2] ^ h0[6];
+			h0[3] = h0[3] ^ h0[7];
+			h1[0] = h1[0] ^ h1[4];
+			h1[1] = h1[1] ^ h1[5];
+			h1[2] = h1[2] ^ h1[6];
+			h1[3] = h1[3] ^ h1[7];
+		}
+		if (len >= 16) {
+			const ::uint32_t *u = reinterpret_cast<const unsigned*>(&p[L - len]);
+			h0[0] = rol<ROL_BITS0>(h0[0]) ^ u[0];
+			h0[1] = rol<ROL_BITS0>(h0[1]) ^ u[1];
+			h0[2] = rol<ROL_BITS0>(h0[2]) ^ u[2];
+			h0[3] = rol<ROL_BITS0>(h0[3]) ^ u[3];
+			h1[0] = rol<ROL_BITS1>(h1[0]) ^ u[0];
+			h1[1] = rol<ROL_BITS1>(h1[1]) ^ u[1];
+			h1[2] = rol<ROL_BITS1>(h1[2]) ^ u[2];
+			h1[3] = rol<ROL_BITS1>(h1[3]) ^ u[3];
+			len -= 16;
+		}
+		h0[0] = h0[0] ^ h0[2];
+		h0[1] = h0[1] ^ h0[3];
+		h1[0] = h1[0] ^ h1[2];
+		h1[1] = h1[1] ^ h1[3];
+		if (len >= 8) {
+			const ::uint32_t *u = reinterpret_cast<const unsigned*>(&p[L - len]);
+			h0[0] = rol<ROL_BITS0>(h0[0]) ^ u[0];
+			h0[1] = rol<ROL_BITS0>(h0[1]) ^ u[1];
+			h1[0] = rol<ROL_BITS1>(h1[0]) ^ u[0];
+			h1[1] = rol<ROL_BITS1>(h1[1]) ^ u[1];
+			len -= 8;
+		}
+		if (len >= 4) {
+			const ::uint32_t *u = reinterpret_cast<const unsigned*>(&p[L - len]);
+			h0[0] = rol<ROL_BITS0>(h0[0]) ^ u[0];
+			h1[0] = rol<ROL_BITS1>(h1[0]) ^ u[0];
+			len -= 4;
+		}
+		h0[0] = h0[0] ^ h0[1];
+		h1[0] = h1[0] ^ h1[1];
+		assert(!len);
+
+		return h0[0] | ::uint64_t(h1[0]) << 32;
+	}
+
+public:
+	static uint64_t hash(const ::uint8_t *p, const ::size_t len) noexcept {
+		return hash_aligned(p, len);
+	}
+};
+
 } /* namespace aux */
 
 template <unsigned ROL_BITS>
 unsigned naive(const ::uint8_t *p, const ::size_t len) noexcept {
 	return aux::HashFunc<ROL_BITS>::hash(p, len);
+}
+
+template <unsigned ROL_BITS0, unsigned ROL_BITS1>
+::uint64_t naive2(const ::uint8_t *p, const ::size_t len) noexcept {
+	return aux::HashFunc2<ROL_BITS0, ROL_BITS1>::hash(p, len);
 }
 
 } } /* meave::rothash */
