@@ -18,7 +18,8 @@ clean:
 
 .PHONY: run.test-rothash
 run.test-rothash: test-rothash
-	./test-rothash 1024
+	for x in `seq 16 16 20480`; do ./test-rothash "$$x"; done 2>test-rothash.res
+	head test-rothash.res
 
 test-rothash: test-rothash.o ../rothash_kernels.o
 	$(LINK.o)
