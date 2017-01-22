@@ -9,6 +9,7 @@ namespace meave { namespace vec {
 union SSE {
 	__m128i i4_;
 	__m128 f4_;
+	__m128d d2_;
 	float sf_[8];
 	::uint32_t dw_[8];
 };
@@ -16,6 +17,7 @@ union SSE {
 union AVX {
 	__m256i i8_;
 	__m256 f8_;
+	__m256d d4_;
 	float sf_[8];
 
 	SSE sse_[2];
@@ -167,15 +169,18 @@ private:
 		}
 		hash0.sse_[0].i4_ = _mm_xor_si128(hash0.sse_[0].i4_, meave::vec::SSE{.f4_ = _mm256_extractf128_ps(hash0.f8_, 1)}.i4_);
 		hash1.sse_[0].i4_ = _mm_xor_si128(hash1.sse_[0].i4_, meave::vec::SSE{.f4_ = _mm256_extractf128_ps(hash1.f8_, 1)}.i4_);
-		hash0.qw_[0] ^= hash0.qw_[1];
-		hash1.qw_[0] ^= hash1.qw_[1];
-		hash0.dw_[0] ^= hash0.dw_[1];
-		hash1.dw_[0] ^= hash1.dw_[1];
-		return hash0.qw_[0] | ::uint64_t(hash1.qw_[0]) << 32;
+		meave::vec::SSE res0{ .d2_ = _mm_unpacklo_pd(hash0.sse_[0].d2_, hash1.sse_[0].d2_) };
+		meave::vec::SSE res1{ .d2_ = _mm_unpackhi_pd(hash0.sse_[0].d2_, hash1.sse_[0].d2_) };
+		res0.f4_ = _mm_xor_ps(res0.f4_, res1.f4_);
+		res1.f4_ = _mm_movehdup_ps(res0.f4_);
+		res0.f4_ = _mm_xor_ps(res0.f4_, res1.f4_);
+		res1.f4_ = _mm_movehl_ps(res1.f4_, meave::vec::SSE{.i4_ = _mm_srli_epi64(res0.i4_, 32)}.f4_);
+		res0.i4_ = _mm_or_si128(res0.i4_, res1.i4_);
+		return _mm_cvtsi128_si64(res0.i4_);
 	}
 
 public:
-	static uint64_t hash(const ::uint8_t *p, const ::size_t len) noexcept {
+	static ::uint64_t hash(const ::uint8_t *p, const ::size_t len) noexcept {
 		return hash_aligned(p, len);
 	}
 };
