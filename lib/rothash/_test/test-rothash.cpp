@@ -9,12 +9,12 @@
 #include <meave/lib/raii/mmap_pointer.hpp>
 #include <meave/lib/rothash/rothash.hpp>
 
-#define ARRAY_LEN (20000000 + 0)
+#define ARRAY_LEN (20000000)
 
 namespace {
 
 void test(const ::size_t step) {
-	meave::raii::MMapPointer<::uint8_t> src{{ARRAY_LEN}};
+	meave::raii::MMapPointer<::uint8_t> src{{ARRAY_LEN + 32}};
 
 	for (uns i = 0; i < ARRAY_LEN; ++i) {
 		src[i] = int(::rand() % 128);

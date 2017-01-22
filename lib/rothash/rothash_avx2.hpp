@@ -154,53 +154,23 @@ private:
 		hash0.f8_ = _mm256_xor_ps(hash0.f8_, hash0.f8_);
 		hash1.f8_ = _mm256_xor_ps(hash1.f8_, hash1.f8_);
 		const ::size_t L = len;
-		if (__builtin_expect(len >= 32, 0)) {
-			do {
-				hash0 = rol<ROL_BITS0>(hash0);
-				hash1 = rol<ROL_BITS1>(hash1);
-				meave::vec::AVX u {.i8_ = _mm256_lddqu_si256(reinterpret_cast<const __m256i*>(&p[L - len]))};
-				hash0.i8_ = _mm256_xor_si256(hash0.i8_, u.i8_);
-				hash1.i8_ = _mm256_xor_si256(hash1.i8_, u.i8_);
-			} while (__builtin_expect((len -= 32) >= 32, 0));
-			hash0.sse_[0].i4_ = _mm_xor_si128(hash0.sse_[0].i4_, hash0.sse_[1].i4_);
-			hash1.sse_[0].i4_ = _mm_xor_si128(hash1.sse_[0].i4_, hash1.sse_[1].i4_);
-		}
-		if (__builtin_expect(len >= 16, 0)) {
+		if (__builtin_expect(!len, 0))
+			return 0;
+
+		for (;; len -= 32) {
 			hash0 = rol<ROL_BITS0>(hash0);
 			hash1 = rol<ROL_BITS1>(hash1);
-			meave::vec::AVX u {.sse_ = {{.i4_ = _mm_lddqu_si128(reinterpret_cast<const __m128i*>(&p[L - len]))}, {.f4_ = _mm_setzero_ps()}}};
-			hash0.i8_ = _mm256_xor_si256(hash0.i8_, u.i8_);
-			hash1.i8_ = _mm256_xor_si256(hash1.i8_, u.i8_);
-			len -= 16;
+			hash0.i8_ = _mm256_xor_si256(hash0.i8_, *reinterpret_cast<const __m256i*>(&p[L - len]));
+			hash1.i8_ = _mm256_xor_si256(hash1.i8_, *reinterpret_cast<const __m256i*>(&p[L - len]));
+			if (__builtin_expect(len <= 32, 1))
+				break;
 		}
+		hash0.sse_[0].i4_ = _mm_xor_si128(hash0.sse_[0].i4_, meave::vec::SSE{.f4_ = _mm256_extractf128_ps(hash0.f8_, 1)}.i4_);
+		hash1.sse_[0].i4_ = _mm_xor_si128(hash1.sse_[0].i4_, meave::vec::SSE{.f4_ = _mm256_extractf128_ps(hash1.f8_, 1)}.i4_);
 		hash0.qw_[0] ^= hash0.qw_[1];
 		hash1.qw_[0] ^= hash1.qw_[1];
-		if (__builtin_expect(len >= 8, 1)) {
-			hash0 = rol<ROL_BITS0>(hash0);
-			hash1 = rol<ROL_BITS1>(hash1);
-			meave::vec::AVX u{.i8_ = _mm256_broadcastq_epi64(*reinterpret_cast<const __m128i*>(&p[L - len]))};
-			hash0.i8_ = _mm256_xor_si256(hash0.i8_, u.i8_);
-			hash1.i8_ = _mm256_xor_si256(hash1.i8_, u.i8_);
-			len -= 8;
-		}
 		hash0.dw_[0] ^= hash0.dw_[1];
 		hash1.dw_[0] ^= hash1.dw_[1];
-		if (__builtin_expect(len >= 4, 1)) {
-			hash0 = rol<ROL_BITS0>(hash0);
-			hash1 = rol<ROL_BITS1>(hash1);
-			meave::vec::AVX u{.f8_ = _mm256_set1_ps(*reinterpret_cast<const float*>(&p[L - len]))};
-			hash0.i8_ = _mm256_xor_si256(hash0.i8_, u.i8_);
-			hash1.i8_ = _mm256_xor_si256(hash1.i8_, u.i8_);
-			len -= 4;
-		}
-		assert(!len);
-/*
-		::size_t l = len;
-		for (; l >= sizeof(unsigned); l -= sizeof(unsigned)) {
-			hash = rol(hash) ^ *u++;
-		}
-		hash = rol(hash) ^ (*u & mask.bits[l]);
-*/
 		return hash0.qw_[0] | ::uint64_t(hash1.qw_[0]) << 32;
 	}
 
