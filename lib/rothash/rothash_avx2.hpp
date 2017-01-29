@@ -174,7 +174,7 @@ private:
 		res0.f4_ = _mm_xor_ps(res0.f4_, res1.f4_);
 		res1.f4_ = _mm_movehdup_ps(res0.f4_);
 		res0.f4_ = _mm_xor_ps(res0.f4_, res1.f4_);
-		res1.f4_ = _mm_movehl_ps(res1.f4_, meave::vec::SSE{.i4_ = _mm_srli_epi64(res0.i4_, 32)}.f4_);
+		res1.f4_ = _mm_movehl_ps(res1.f4_, meave::vec::SSE{.i4_ = _mm_slli_epi64(res0.i4_, 32)}.f4_);
 		res0.i4_ = _mm_or_si128(res0.i4_, res1.i4_);
 		return _mm_cvtsi128_si64(res0.i4_);
 	}
@@ -195,6 +195,57 @@ template <unsigned ROL_BITS>
 template <unsigned ROL_BITS0, unsigned ROL_BITS1>
 ::uint64_t avx2_2(const ::uint8_t *p, const ::size_t len) noexcept {
 	return aux::avx2::HashFunc2<ROL_BITS0, ROL_BITS1>::hash(p, len);
+}
+
+namespace aux { namespace sse {
+
+template <unsigned ROL_BITS0, unsigned ROL_BITS1>
+class HashFunc2 : public aux::HashBase<unsigned> {
+private:
+	template <unsigned ROL_BITS>
+	static meave::vec::SSE rol(const meave::vec::SSE x) noexcept {
+		return meave::vec::SSE{ .i4_ = _mm_or_si128( _mm_slli_epi32(x.i4_, ROL_BITS), _mm_srli_epi32(x.i4_, 32 - ROL_BITS) ) };
+	}
+
+	static ::uint64_t hash_aligned(const ::uint8_t *p, ::size_t len) noexcept {
+		meave::vec::SSE hash0;
+		meave::vec::SSE hash1;
+
+		hash0.f4_ = _mm_xor_ps(hash0.f4_, hash0.f4_);
+		hash1.f4_ = _mm_xor_ps(hash1.f4_, hash1.f4_);
+		const ::size_t L = len;
+		if (__builtin_expect(!len, 0))
+			return 0;
+
+		for (;; len -= 16) {
+			hash0 = rol<ROL_BITS0>(hash0);
+			hash1 = rol<ROL_BITS1>(hash1);
+			hash0.i4_ = _mm_xor_si128(hash0.i4_, *reinterpret_cast<const __m128i*>(&p[L - len]));
+			hash1.i4_ = _mm_xor_si128(hash1.i4_, *reinterpret_cast<const __m128i*>(&p[L - len]));
+			if (__builtin_expect(len <= 32, 1))
+				break;
+		}
+		meave::vec::SSE res0{ .d2_ = _mm_unpacklo_pd(hash0.d2_, hash1.d2_) };
+		meave::vec::SSE res1{ .d2_ = _mm_unpackhi_pd(hash0.d2_, hash1.d2_) };
+		res0.f4_ = _mm_xor_ps(res0.f4_, res1.f4_);
+		res1.f4_ = _mm_movehdup_ps(res0.f4_);
+		res0.f4_ = _mm_xor_ps(res0.f4_, res1.f4_);
+		res1.f4_ = _mm_movehl_ps(res1.f4_, meave::vec::SSE{.i4_ = _mm_slli_epi64(res0.i4_, 32)}.f4_);
+		res0.i4_ = _mm_or_si128(res0.i4_, res1.i4_);
+		return _mm_cvtsi128_si64(res0.i4_);
+	}
+
+public:
+	static ::uint64_t hash(const ::uint8_t *p, const ::size_t len) noexcept {
+		return hash_aligned(p, len);
+	}
+};
+
+} } /* namespace aux::sse */
+
+template <unsigned ROL_BITS0, unsigned ROL_BITS1>
+::uint64_t sse_2(const ::uint8_t *p, const ::size_t len) noexcept {
+	return aux::sse::HashFunc2<ROL_BITS0, ROL_BITS1>::hash(p, len);
 }
 
 } } /* meave::rothash */

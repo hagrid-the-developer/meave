@@ -207,7 +207,7 @@ private:
 	}
 
 public:
-	static uint64_t hash(const ::uint8_t *p, const ::size_t len) noexcept {
+	static ::uint64_t hash(const ::uint8_t *p, const ::size_t len) noexcept {
 		return hash_aligned(p, len);
 	}
 };
