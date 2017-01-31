@@ -12,6 +12,7 @@ union SSE {
 	__m128d d2_;
 	float sf_[4];
 	::uint32_t dw_[4];
+	::uint64_t qw_[2];
 	::uint8_t b_[16];
 };
 
