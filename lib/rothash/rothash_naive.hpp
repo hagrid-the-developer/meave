@@ -272,6 +272,62 @@ public:
 	}
 };
 
+template <unsigned ROL_BITS0, unsigned ROL_BITS1>
+class HashFunc4 : public aux::HashBase<unsigned> {
+public:
+	struct Result {
+		::uint32_t _[4];
+	};
+
+private:
+	template <unsigned ROL_BITS>
+	static ::uint32_t rol(const ::uint32_t x) noexcept {
+		return (x << ROL_BITS) | (x >> (sizeof(x)*8 - ROL_BITS));
+	}
+
+	static Result hash_aligned(const ::uint8_t *p, ::size_t len) noexcept {
+		Result h0 = {};
+		Result h1 = {};
+
+		const ::size_t L = len;
+		if (len >= 16) {
+			do {
+				const ::uint32_t *u = reinterpret_cast<const ::uint32_t*>(&p[L - len]);
+				h0._[0] = rol<ROL_BITS0>(h0._[0]) ^ u[0];
+				h0._[1] = rol<ROL_BITS0>(h0._[1]) ^ u[1];
+				h0._[2] = rol<ROL_BITS0>(h0._[2]) ^ u[2];
+				h0._[3] = rol<ROL_BITS0>(h0._[3]) ^ u[3];
+				h1._[0] = rol<ROL_BITS1>(h1._[0]) ^ u[0];
+				h1._[1] = rol<ROL_BITS1>(h1._[1]) ^ u[1];
+				h1._[2] = rol<ROL_BITS1>(h1._[2]) ^ u[2];
+				h1._[3] = rol<ROL_BITS1>(h1._[3]) ^ u[3];
+			} while ((len -= 16) >= 16);
+		}
+		if (len >= 8) {
+			const ::uint32_t *u = reinterpret_cast<const unsigned*>(&p[L - len]);
+			h0._[0] = rol<ROL_BITS0>(h0._[0]) ^ u[0];
+			h0._[1] = rol<ROL_BITS0>(h0._[1]) ^ u[1];
+			h1._[0] = rol<ROL_BITS1>(h1._[0]) ^ u[0];
+			h1._[1] = rol<ROL_BITS1>(h1._[1]) ^ u[1];
+			len -= 8;
+		}
+		if (len >= 4) {
+			const ::uint32_t *u = reinterpret_cast<const unsigned*>(&p[L - len]);
+			h0._[0] = rol<ROL_BITS0>(h0._[0]) ^ u[0];
+			h1._[0] = rol<ROL_BITS1>(h1._[0]) ^ u[0];
+			len -= 4;
+		}
+		assert(!len);
+
+		return Result{ h0._[0] ^ h0._[2], h0._[1] ^ h0._[3], h1._[0] ^ h1._[2], h1._[1] ^ h1._[3] };
+	}
+
+public:
+	static Result hash(const ::uint8_t *p, const ::size_t len) noexcept {
+		return hash_aligned(p, len);
+	}
+};
+
 } /* namespace aux */
 
 template <unsigned ROL_BITS>
@@ -287,6 +343,11 @@ template <unsigned ROL_BITS0, unsigned ROL_BITS1>
 template <unsigned ROL_BITS0, unsigned ROL_BITS1>
 ::uint64_t naive3(const ::uint8_t *p, const ::size_t len) noexcept {
 	return aux::HashFunc3<ROL_BITS0, ROL_BITS1>::hash(p, len);
+}
+
+template <unsigned ROL_BITS0, unsigned ROL_BITS1>
+typename aux::HashFunc4<ROL_BITS0, ROL_BITS1>::Result naive4(const ::uint8_t *p, const ::size_t len) noexcept {
+	return aux::HashFunc4<ROL_BITS0, ROL_BITS1>::hash(p, len);
 }
 
 } } /* meave::rothash */
