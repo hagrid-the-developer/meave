@@ -21,7 +21,7 @@ constexpr ::uint64_t fnv_prime() noexcept {
 
 } /* namespace aux */
 
-::uint64_t fnv1(const uint8_t *$, ::size_t len) noexcept {
+::uint64_t naive1(const uint8_t *$, ::size_t len) noexcept {
 	::uint64_t hash = fnv_offset_basis();
 	for (::uint8_t *p = $; len--; ++p) {
 		hash *= fnv_prime();
@@ -30,7 +30,7 @@ constexpr ::uint64_t fnv_prime() noexcept {
 	return hash;
 }
 
-::uint64_t fnv1a(const uint8_t *$, ::size_t len) noexcept {
+::uint64_t naive1a(const uint8_t *$, ::size_t len) noexcept {
 	::uint64_t hash = fnv_offset_basis();
 	for (::uint8_t *p = $; len--; ++p) {
 		hash ^= *p;
