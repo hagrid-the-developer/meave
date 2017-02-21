@@ -408,6 +408,61 @@ public:
 	}
 };
 
+template <unsigned ROL_BITS0, unsigned ROL_BITS1>
+class HashFunc2_4 : public aux::HashBase<unsigned> {
+private:
+	static constexpr __m128i rol_vals_left(const uns rol) {
+		return _mm_set_epi32(rol*1 % 32, rol*2 % 32, rol*3 % 32, rol*4 % 32);
+	}
+
+	static constexpr __m128i rol_vals_right(const uns rol) {
+		return _mm_set_epi32((32 - rol)*1 % 32, (32 - rol)*2 % 32, (32 - rol)*3 % 32, (32 - rol)*4 % 32);
+	}
+
+	template <unsigned ROL_BITS>
+	static meave::vec::SSE rol(const meave::vec::SSE x) noexcept {
+		return meave::vec::SSE{ .i4_ = _mm_or_si128( _mm_sllv_epi32(x.i4_, rol_vals_left(ROL_BITS)), _mm_srlv_epi32(x.i4_, rol_vals_right(ROL_BITS)) ) };
+	}
+
+	static ::uint64_t hash_aligned(const ::uint8_t *p, ::size_t len) noexcept {
+		meave::vec::SSE hash0;
+		meave::vec::SSE hash1;
+
+		hash0.f4_ = _mm_setzero_ps();
+		hash1.f4_ = _mm_setzero_ps();
+		const ::size_t L = len;
+		if (__builtin_expect(!len, 0))
+			return 0;
+
+		for (;; len -= 16) {
+			hash0 = rol<ROL_BITS0>(hash0);
+			hash1 = rol<ROL_BITS1>(hash1);
+			hash0.i4_ = _mm_xor_si128(hash0.i4_, *reinterpret_cast<const __m128i*>(&p[L - len]));
+			hash1.i4_ = _mm_xor_si128(hash1.i4_, *reinterpret_cast<const __m128i*>(&p[L - len]));
+			if (__builtin_expect(len <= 16, 1))
+				break;
+		}
+		const __m128i in0 = hash0.i4_;
+		const __m128i in1 = hash1.i4_;
+
+		const __m128i xor64_0 = _mm_unpackhi_epi64(in0, in1);
+		const __m128i xor64_1 = _mm_unpacklo_epi64(in0, in1);
+
+		const __m128i xor64 = _mm_xor_si128(xor64_0, xor64_1);
+
+		const __m128i xor32_0 = _mm_shuffle_epi32(xor64, _MM_SHUFFLE(3, 1, 2, 0));
+		const __m128i xor32_1 = _mm_shuffle_epi32(xor64, _MM_SHUFFLE(2, 0, 3, 1));
+		const __m128i xor32 = _mm_xor_si128(xor32_0, xor32_1);
+
+		return _mm_cvtsi128_si64(xor32);
+	}
+
+public:
+	static ::uint64_t hash(const ::uint8_t *p, const ::size_t len) noexcept {
+		return hash_aligned(p, len);
+	}
+};
+
 } } /* namespace aux::sse */
 
 template <unsigned ROL_BITS0, unsigned ROL_BITS1>
@@ -428,6 +483,11 @@ template <unsigned ROL_BITS0, unsigned ROL_BITS1>
 template <unsigned ROL_BITS0, unsigned ROL_BITS1>
 meave::vec::SSE sse_2_3(const ::uint8_t *p, const ::size_t len) noexcept {
 	return aux::sse::HashFunc2_3<ROL_BITS0, ROL_BITS0>::hash(p, len);
+}
+
+template <unsigned ROL_BITS0, unsigned ROL_BITS1>
+::uint64_t sse_2_4(const ::uint8_t *p, const ::size_t len) noexcept {
+	return aux::sse::HashFunc2_4<ROL_BITS0, ROL_BITS1>::hash(p, len);
 }
 
 } } /* meave::rothash */
