@@ -2,34 +2,7 @@
 #	define MEAVE_LIB_ROTHASH_AVX2_HPP
 
 #include <cstdint>
-#include <immintrin.h>
-
-namespace meave { namespace vec {
-
-union SSE {
-	__m128i i4_;
-	__m128 f4_;
-	__m128d d2_;
-	float sf_[4];
-	::uint32_t dw_[4];
-	::uint64_t qw_[2];
-	::uint8_t b_[16];
-};
-
-union AVX {
-	__m256i i8_;
-	__m256 f8_;
-	__m256d d4_;
-	float sf_[8];
-
-	SSE sse_[2];
-	::uint32_t dw_[8];
-	::uint64_t qw_[4];
-	::uint8_t b_[32];
-};
-
-} } /* meave::vec */
-
+#include <meave/lib/vec.hpp>
 
 namespace meave { namespace rothash {
 
@@ -490,6 +463,6 @@ template <unsigned ROL_BITS0, unsigned ROL_BITS1>
 	return aux::sse::HashFunc2_4<ROL_BITS0, ROL_BITS1>::hash(p, len);
 }
 
-} } /* meave::rothash */
+} } /* namespace ::meave::rothash */
 
-#endif // MEAVE_LIB_ROTHASH_meave::vec::AVX2_HPP
+#endif // MEAVE_LIB_ROTHASH_AVX2_HPP

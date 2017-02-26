@@ -8,6 +8,7 @@
 #include <meave/lib/utils.hpp>
 #include <meave/lib/raii/mmap_pointer.hpp>
 #include <meave/lib/rothash/rothash.hpp>
+#include <meave/lib/rothash/fnv.hpp>
 
 #define ARRAY_LEN (20000000)
 
@@ -20,6 +21,50 @@ void test(const ::size_t step) {
 		src[i] = int(::rand() % 128);
 	}
 
+	if (0 == step % 4) {
+		::uint64_t hash = 0;
+		const double b = meave::getrealtime();
+		for (::size_t i = 0; i + step <= ARRAY_LEN; i += step) {
+			hash ^= meave::fnv::naive1(&src[i], step);
+		}
+		const double e = meave::getrealtime();
+		$::cerr << "step: " << $::setw(8) << $::right << step << ";" << $::setw(12) << $::right << " naive/fnv1: " << "0x" << $::setw(16) << $::hex << $::setfill('0') << hash << $::dec << $::setfill(' ') << "; " << (e - b) << "seconds" << $::endl;
+	} else {
+		$::cerr << "step: " << $::setw(8) << $::right << step << ";" << $::setw(12) << $::right << " naive/fnv1:" << $::setw(16) << "NA" << $::endl;
+	}
+	if (0 == step % 4) {
+		::uint64_t hash = 0;
+		const double b = meave::getrealtime();
+		for (::size_t i = 0; i + step <= ARRAY_LEN; i += step) {
+			hash ^= meave::fnv::naive1a(&src[i], step);
+		}
+		const double e = meave::getrealtime();
+		$::cerr << "step: " << $::setw(8) << $::right << step << ";" << $::setw(12) << $::right << " naive/fnv1a: " << "0x" << $::setw(16) << $::hex << $::setfill('0') << hash << $::dec << $::setfill(' ') << "; " << (e - b) << "seconds" << $::endl;
+	} else {
+		$::cerr << "step: " << $::setw(8) << $::right << step << ";" << $::setw(12) << $::right << " naive/fnv1a:" << $::setw(16) << "NA" << $::endl;
+	}
+	if (0 == step % 4) {
+		meave::vec::AVX hash{ .f8_ = _mm256_setzero_ps() };
+		const double b = meave::getrealtime();
+		for (::size_t i = 0; i + step <= ARRAY_LEN; i += step) {
+			hash.i8_ = _mm256_xor_si256( hash.i8_, meave::fnv::naive1_vec(&src[i], step).i8_ );
+		}
+		const double e = meave::getrealtime();
+		$::cerr << "step: " << $::setw(8) << $::right << step << ";" << $::setw(12) << $::right << " naive/1_vec: " << "0x" << $::setw(16) << $::hex << $::setfill('0') << hash.qw_[0] << ":" << hash.qw_[1] << ":" << hash.qw_[2] << ":" << hash.qw_[3] << "; " << $::dec << $::setfill(' ') << e - b << "seconds" << $::endl;
+	} else {
+		$::cerr << "step: " << $::setw(8) << $::right << step << ";" << $::setw(12) << $::right << " naive/1_vec: " << $::setw(16) << "NA" << $::endl;
+	}
+	if (0 == step % 4) {
+		meave::vec::AVX hash{ .f8_ = _mm256_setzero_ps() };
+		const double b = meave::getrealtime();
+		for (::size_t i = 0; i + step <= ARRAY_LEN; i += step) {
+			hash.i8_ = _mm256_xor_si256( hash.i8_, meave::fnv::naive1a_vec(&src[i], step).i8_ );
+		}
+		const double e = meave::getrealtime();
+		$::cerr << "step: " << $::setw(8) << $::right << step << ";" << $::setw(12) << $::right << " naive/1a_vec: " << "0x" << $::setw(16) << $::hex << $::setfill('0') << hash.qw_[0] << ":" << hash.qw_[1] << ":" << hash.qw_[2] << ":" << hash.qw_[3] << "; " << $::dec << $::setfill(' ') << (e - b) << "seconds" << $::endl;
+	} else {
+		$::cerr << "step: " << $::setw(8) << $::right << step << ";" << $::setw(12) << $::right << " naive/1a_vec: " << $::setw(16) << "NA" << $::endl;
+	}
 	if (0 == step % 4) {
 		unsigned hash = 0;
 		const double b = meave::getrealtime();
