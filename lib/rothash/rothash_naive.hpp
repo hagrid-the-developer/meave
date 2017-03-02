@@ -10,6 +10,78 @@ namespace meave { namespace rothash {
 
 namespace aux {
 
+template<typename T = ::uint32_t>
+class HashBaseForBasic {
+protected:
+	static const struct MaskBits {
+		::uint32_t bits[sizeof(T)];
+
+		MaskBits() {
+			::uint8_t *p = reinterpret_cast<::uint8_t*>(bits);
+			for (::size_t i = 0; i < sizeof(T); ++i) {
+				for (::size_t j = 0; j < sizeof(T); ++j) {
+					p[i*sizeof(T) + j] = j < i ? 0xFF : 0;
+				}
+			}
+		}
+	} mask;
+
+	static ::size_t unaligned_part(const ::uint8_t *x) noexcept {
+		return reinterpret_cast< ::uintptr_t>(x) % sizeof(T);
+	}
+};
+template<typename T>
+const typename HashBaseForBasic<T>::MaskBits HashBaseForBasic<T>::mask;
+
+template <unsigned ROL_BITS>
+class HashFuncForBasic : public aux::HashBaseForBasic<> {
+private:
+	static ::uint32_t rol(const ::uint32_t x) noexcept {
+		return (x << ROL_BITS) | (x >> (sizeof(x)*8 - ROL_BITS));
+	}
+
+	static ::uint32_t hash_aligned(const ::uint8_t *p, const ::size_t len, ::uint32_t hash) noexcept {
+		const ::uint32_t *u = reinterpret_cast<const ::uint32_t*>(p);
+		::size_t l = len;
+		for (; l >= sizeof(::uint32_t); l -= sizeof(::uint32_t)) {
+			hash = rol(hash) ^ *u++;
+		}
+		hash = rol(hash) ^ (*u & mask.bits[l]);
+		return hash;
+	}
+
+	static ::uint32_t hash_unaligned(const ::uint8_t *p, const ::size_t len, ::uint32_t hash) noexcept {
+		for (unsigned i = 0; ; ++i) {
+			const ::size_t mod = i % sizeof(::uint32_t);
+			if (0 == mod)
+				hash = rol(hash);
+
+			if (i >= len)
+				break;
+
+#			if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+			const ::size_t shift = 8*mod;
+#			elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+			const ::size_t shift = 8*(sizeof(::uint32_t) - mod - 1);
+#			else
+#			error Sorry, cannot determine endiadness
+#			endif
+
+			hash ^= p[i] << shift;
+		}
+		return hash;
+	}
+
+public:
+	static ::uint32_t hash(const ::uint8_t *p, const ::size_t len, const ::uint32_t hash = 0) noexcept {
+		const auto alignment = unaligned_part(p);
+		if (__builtin_expect(!alignment, 1))
+			return hash_aligned(p, len, hash);
+
+		return hash_unaligned(p, len, hash);
+	}
+};
+
 template<typename T = unsigned>
 class HashBase {
 protected:
@@ -329,6 +401,16 @@ public:
 };
 
 } /* namespace aux */
+
+template <unsigned ROL_BITS>
+unsigned basic(const ::uint8_t *p, const ::size_t len) noexcept {
+	return aux::HashFuncForBasic<ROL_BITS>::hash(p, len);
+}
+
+template <unsigned ROL_BITS0, unsigned ROL_BITS1>
+::uint64_t basic_duo(const ::uint8_t *p, const ::size_t len) noexcept {
+	 return ::uint64_t(aux::HashFuncForBasic<ROL_BITS0>::hash(p, len)) << 32 | aux::HashFuncForBasic<ROL_BITS1>::hash(p, len);
+}
 
 template <unsigned ROL_BITS>
 unsigned naive(const ::uint8_t *p, const ::size_t len) noexcept {

@@ -66,7 +66,7 @@ void test(const ::size_t step) {
 		$::cerr << "step: " << $::setw(8) << $::right << step << ";" << $::setw(12) << $::right << " naive/1a_vec: " << $::setw(16) << "NA" << $::endl;
 	}
 	if (0 == step % 4) {
-		unsigned hash = 0;
+		::uint32_t hash = 0;
 		const double b = meave::getrealtime();
 		for (::size_t i = 0; i + step <= ARRAY_LEN; i += step) {
 			hash ^= meave::rothash::naive<13>(&src[i], step);
@@ -75,6 +75,39 @@ void test(const ::size_t step) {
 		$::cerr << "step: " << $::setw(8) << $::right << step << ";" << $::setw(12) << $::right << " naive: " << "0x" << $::setw(16) << $::hex << $::setfill('0') << hash << $::dec << $::setfill(' ') << "; " << (e - b) << "seconds" << $::endl;
 	} else {
 		$::cerr << "step: " << $::setw(8) << $::right << step << ";" << $::setw(12) << $::right << " naive:" << $::setw(16) << "NA" << $::endl;
+	}
+	if (0 == step % 4) {
+		::uint32_t hash = 0;
+		const double b = meave::getrealtime();
+		for (::size_t i = 0; i + step <= ARRAY_LEN; i += step) {
+			hash ^= meave::rothash::sse_1_1<13>(&src[i], step);
+		}
+		const double e = meave::getrealtime();
+		$::cerr << "step: " << $::setw(8) << $::right << step << ";" << $::setw(12) << $::right << " sse_1_1: " << "0x" << $::setw(16) << $::hex << $::setfill('0') << hash << $::dec << $::setfill(' ') << "; " << (e - b) << "seconds" << $::endl;
+	} else {
+		$::cerr << "step: " << $::setw(8) << $::right << step << ";" << $::setw(12) << $::right << " sse_1_1:" << $::setw(16) << "NA" << $::endl;
+	}
+	if (0 == step % 4) {
+		::uint32_t hash = 0;
+		const double b = meave::getrealtime();
+		for (::size_t i = 0; i + step <= ARRAY_LEN; i += step) {
+			hash ^= meave::rothash::basic<13>(&src[i], step);
+		}
+		const double e = meave::getrealtime();
+		$::cerr << "step: " << $::setw(8) << $::right << step << ";" << $::setw(12) << $::right << " basic: " << "0x" << $::setw(16) << $::hex << $::setfill('0') << hash << $::dec << $::setfill(' ') << "; " << (e - b) << "seconds" << $::endl;
+	} else {
+		$::cerr << "step: " << $::setw(8) << $::right << step << ";" << $::setw(12) << $::right << " basic:" << $::setw(16) << "NA" << $::endl;
+	}
+	if (0 == step % 4) {
+		::uint64_t hash = 0;
+		const double b = meave::getrealtime();
+		for (::size_t i = 0; i + step <= ARRAY_LEN; i += step) {
+			hash ^= meave::rothash::basic_duo<13, 17>(&src[i], step);
+		}
+		const double e = meave::getrealtime();
+		$::cerr << "step: " << $::setw(8) << $::right << step << ";" << $::setw(12) << $::right << " basic_duo: " << "0x" << $::setw(16) << $::hex << $::setfill('0') << hash << $::dec << $::setfill(' ') << "; " << (e - b) << "seconds" << $::endl;
+	} else {
+		$::cerr << "step: " << $::setw(8) << $::right << step << ";" << $::setw(12) << $::right << " basic_duo:" << $::setw(16) << "NA" << $::endl;
 	}
 	if (0 == step % 4) {
 		uint64_t hash = 0;
@@ -169,7 +202,7 @@ void test(const ::size_t step) {
 		$::cerr << "step: " << $::setw(8) << $::right << step << ";" << $::setw(12) << $::right << " sse_2_4: " << $::setw(16) << "NA" << $::endl;
 	}
 	if (0 == step % 32) {
-		unsigned hash = 0;
+		::uint32_t hash = 0;
 		const double b = meave::getrealtime();
 		for (::size_t i = 0; i + step <= ARRAY_LEN; i += step) {
 			hash ^= meave::rothash::asm_avx2(&src[i], step, 13);
@@ -180,7 +213,7 @@ void test(const ::size_t step) {
 		$::cerr << "step: " << $::setw(8) << $::right << step << ";" << $::setw(12) << $::right << " asm_avx2:" << $::setw(16) << "NA" << $::endl;
 	}
 	if (0 == step % 32) {
-		unsigned hash = 0;
+		::uint32_t hash = 0;
 		const double b = meave::getrealtime();
 		for (::size_t i = 0; i + step <= ARRAY_LEN; i += step) {
 			hash ^= meave::rothash::avx2<13>(&src[i], step);
