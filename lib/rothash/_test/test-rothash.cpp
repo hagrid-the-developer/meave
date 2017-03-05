@@ -110,6 +110,17 @@ void test(const ::size_t step) {
 		$::cerr << "step: " << $::setw(8) << $::right << step << ";" << $::setw(12) << $::right << " basic_duo:" << $::setw(16) << "NA" << $::endl;
 	}
 	if (0 == step % 4) {
+		::uint64_t hash = 0;
+		const double b = meave::getrealtime();
+		for (::size_t i = 0; i + step <= ARRAY_LEN; i += step) {
+			hash ^= meave::rothash::basic_both<13, 17>(&src[i], step);
+		}
+		const double e = meave::getrealtime();
+		$::cerr << "step: " << $::setw(8) << $::right << step << ";" << $::setw(12) << $::right << " basic_both: " << "0x" << $::setw(16) << $::hex << $::setfill('0') << hash << $::dec << $::setfill(' ') << "; " << (e - b) << "seconds" << $::endl;
+	} else {
+		$::cerr << "step: " << $::setw(8) << $::right << step << ";" << $::setw(12) << $::right << " basic_both:" << $::setw(16) << "NA" << $::endl;
+	}
+	if (0 == step % 4) {
 		uint64_t hash = 0;
 		const double b = meave::getrealtime();
 		for (::size_t i = 0; i + step <= ARRAY_LEN; i += step) {

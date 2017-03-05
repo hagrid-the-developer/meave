@@ -82,6 +82,40 @@ public:
 	}
 };
 
+template <unsigned ROL_BITS0, unsigned ROL_BITS1>
+class HashFuncForBoth : public aux::HashBaseForBasic<> {
+private:
+	template <unsigned ROL_BITS>
+	static ::uint32_t rol(const ::uint32_t x) noexcept {
+		return (x << ROL_BITS) | (x >> (sizeof(x)*8 - ROL_BITS));
+	}
+
+	static ::uint64_t hash_aligned(const ::uint8_t *p, const ::size_t len) noexcept {
+		::uint32_t h0 = 0;
+		::uint32_t h1 = 0;
+		const ::uint32_t *u = reinterpret_cast<const ::uint32_t*>(p);
+		::size_t l = len;
+		for (; l >= sizeof(::uint32_t); l -= sizeof(::uint32_t)) {
+			const ::uint32_t x = *u++;
+			h0 = rol<ROL_BITS0>(h0) ^ x;
+			h1 = rol<ROL_BITS1>(h1) ^ x;
+		}
+		const ::uint32_t x = *u & mask.bits[l];
+		h0 = rol<ROL_BITS0>(h0) ^ x;
+		h1 = rol<ROL_BITS1>(h1) ^ x;
+		return ::uint64_t(h0) << 32 | h1;
+	}
+
+public:
+	static ::uint64_t hash(const ::uint8_t *p, const ::size_t len) noexcept {
+		const auto alignment = unaligned_part(p);
+		if (__builtin_expect(!alignment, 1))
+			return hash_aligned(p, len);
+
+		__builtin_unreachable();
+	}
+};
+
 template<typename T = unsigned>
 class HashBase {
 protected:
@@ -410,6 +444,11 @@ unsigned basic(const ::uint8_t *p, const ::size_t len) noexcept {
 template <unsigned ROL_BITS0, unsigned ROL_BITS1>
 ::uint64_t basic_duo(const ::uint8_t *p, const ::size_t len) noexcept {
 	 return ::uint64_t(aux::HashFuncForBasic<ROL_BITS0>::hash(p, len)) << 32 | aux::HashFuncForBasic<ROL_BITS1>::hash(p, len);
+}
+
+template <unsigned ROL_BITS0, unsigned ROL_BITS1>
+::uint64_t basic_both(const ::uint8_t *p, const ::size_t len) noexcept {
+	return aux::HashFuncForBoth<ROL_BITS0, ROL_BITS1>::hash(p, len);
 }
 
 template <unsigned ROL_BITS>
