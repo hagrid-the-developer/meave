@@ -3,8 +3,9 @@
 
 #include <meave/lib/math/funcs_approx.hpp>
 #include <meave/lib/gettime.hpp>
-#include <meave/lib/utils.hpp>
 #include <meave/lib/raii/mmap_pointer.hpp>
+#include <meave/lib/math/precalculate_log.hpp>
+#include <meave/lib/utils.hpp>
 
 #define ARRAY_LEN (20000*1024 + 24)
 
@@ -16,9 +17,10 @@ void test() {
 	meave::raii::MMapPointer<float> dst_exp2_taylor{{ARRAY_LEN}};
 	meave::raii::MMapPointer<float> dst_exp2_taylor_one{{ARRAY_LEN}};
 	meave::raii::MMapPointer<float> dst_exp256{{ARRAY_LEN}};
+	meave::raii::MMapPointer<float> dst_precalculated{{ARRAY_LEN}};
 
 	for (uns i = 0; i < ARRAY_LEN; ++i) {
-		src[i] = dst_exp2f[i] = dst_exp2_taylor[i] = dst_exp2_taylor_one[i] = dst_exp256[i] = (int(i) - ARRAY_LEN/2) / 1000000.f;
+		src[i] = dst_exp2f[i] = dst_exp2_taylor[i] = dst_exp2_taylor_one[i] = dst_exp256[i] = dst_precalculated[i] = (int(i) - ARRAY_LEN/2) / 1000000.f;
 	}
 
 	{
@@ -45,6 +47,16 @@ void test() {
 		const double e = meave::getrealtime();
 		$::cerr << "taylor4_one: " << (e - b) << $::endl;
 	}
+
+	{
+		const double b = meave::getrealtime();
+		for (uns i = 0; i < ARRAY_LEN; i += 8) {
+			*(meave::vec::AVX*)&dst_precalculated[i] = meave::math::precalculated_exp(*(meave::vec::AVX*)&src[i]);
+		}
+		const double e = meave::getrealtime();
+		$::cerr << "precalculated: " << (e - b) << $::endl;
+	}
+
 	{
 		// This is calculation of exp(x), not exp2(x), it is here to compare speed!
 		const double b = meave::getrealtime();
@@ -59,9 +71,9 @@ void test() {
 	float max_rel_err = 0.f;
 	float max_abs_err_taylor_one = 0.f;
 	float max_rel_err_taylor_one = 0.f;
-	$::cout << "Value" << '|' << "Exp2" << '|' << "Exp2-qd" << '|' << "Exp2-one" << $::endl;
+	$::cout << "Value" << '|' << "Exp2" << '|' << "Exp2-qd" << '|' << "Exp2-one" << '|' << "Precalculated" << $::endl;
 	for (uns i = 0; i < ARRAY_LEN; ++i) {
-		$::cout << src[i] << '|' << dst_exp2f[i] << '|' << dst_exp2_taylor[i] << '|' << dst_exp2_taylor_one[i] << $::endl;
+		$::cout << src[i] << '|' << dst_exp2f[i] << '|' << dst_exp2_taylor[i] << '|' << dst_exp2_taylor_one[i] << '|' << dst_precalculated[i] << $::endl;
 		{
 			const float abs_err = ::fabs(dst_exp2f[i] - dst_exp2_taylor[i]);
 			const float rel_err = abs_err / dst_exp2f[i];
