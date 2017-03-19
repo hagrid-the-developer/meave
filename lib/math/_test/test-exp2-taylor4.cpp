@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 
@@ -12,16 +13,17 @@
 namespace {
 
 void test() {
-	meave::raii::MMapPointer<float> src{{ARRAY_LEN}};
-	meave::raii::MMapPointer<float> dst_exp2f{{ARRAY_LEN}};
-	meave::raii::MMapPointer<float> dst_exp2_taylor{{ARRAY_LEN}};
-	meave::raii::MMapPointer<float> dst_exp2_taylor_one{{ARRAY_LEN}};
-	meave::raii::MMapPointer<float> dst_exp256{{ARRAY_LEN}};
-	meave::raii::MMapPointer<float> dst_precalculated{{ARRAY_LEN}};
+	meave::raii::MMapPointer<float> src{ARRAY_LEN};
+	meave::raii::MMapPointer<float> dst_exp2f{ARRAY_LEN};
+	meave::raii::MMapPointer<float> dst_exp2_taylor{ARRAY_LEN};
+	meave::raii::MMapPointer<float> dst_exp2_taylor_one{ARRAY_LEN};
+	meave::raii::MMapPointer<float> dst_exp256{ARRAY_LEN};
+	meave::raii::MMapPointer<float> dst_precalculated{ARRAY_LEN};
 
 	for (uns i = 0; i < ARRAY_LEN; ++i) {
 		src[i] = dst_exp2f[i] = dst_exp2_taylor[i] = dst_exp2_taylor_one[i] = dst_exp256[i] = dst_precalculated[i] = (int(i) - ARRAY_LEN/2) / 1000000.f;
 	}
+	$::random_shuffle(&src[0], &src[ARRAY_LEN]);
 
 	{
 		const double b1 = meave::getrealtime();
@@ -51,7 +53,7 @@ void test() {
 	{
 		const double b = meave::getrealtime();
 		for (uns i = 0; i < ARRAY_LEN; i += 8) {
-			*(meave::vec::AVX*)&dst_precalculated[i] = meave::math::precalculated_exp(*(meave::vec::AVX*)&src[i]);
+			*(meave::vec::AVX*)&dst_precalculated[i] = meave::math::precalculated<::exp2f>(*(meave::vec::AVX*)&src[i]);
 		}
 		const double e = meave::getrealtime();
 		$::cerr << "precalculated: " << (e - b) << $::endl;
