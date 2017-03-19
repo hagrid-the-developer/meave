@@ -34,7 +34,7 @@ private:
 	}
 
 public:
-	PrecalculateExp() noexcept {
+	Precalculate() noexcept {
 		for (::ssize_t i = 0; i < SAMPLES + 1; ++i) {
 			data_[i] = F(val(i));
 		}
@@ -49,29 +49,35 @@ public:
 };
 #endif
 
-template <float F(float)>
-class PrecalculateExp {
+template <float F(float), unsigned SAMPLES = 1000>
+class Precalculate {
 private:
-	float data_[1000];
+	enum {
+		  S = SAMPLES
+		, S_2 = S/2
+		, S_21 = S/2 - 1
+	};
+
+	float data_[S];
 
 	meave::vec::AVX min() const noexcept {
-		return meave::vec::AVX{ .f8_ = _mm256_set1_ps(-5.f*499.f/500.f) };
+		return meave::vec::AVX{ .f8_ = _mm256_set1_ps(-5.f*float(S_21)/S_2) };
 	}
 
 	meave::vec::AVX max() const noexcept {
-		return meave::vec::AVX{ .f8_ = _mm256_set1_ps(+5.f*499.f/500.f) };
+		return meave::vec::AVX{ .f8_ = _mm256_set1_ps(+5.f*float(S_21)/S_2) };
 	}
 
 public:
-	PrecalculateExp() noexcept {
+	Precalculate() noexcept {
 		const ::ssize_t size = sizeof(data_)/sizeof(*data_);
-		for (::ssize_t i = 0; i < size; ++i)
-			data_[i] = F( 5.f*(float(i - 500)/500.f) );
+		for (::ssize_t i = 0; i < S; ++i)
+			data_[i] = F( 5.f*(float(i - S_2)/S_21) );
 	}
 
 	meave::vec::AVX operator()(meave::vec::AVX $) noexcept {
 		$.f8_ = _mm256_min_ps(max().f8_, _mm256_max_ps(min().f8_, $.f8_));
-		meave::vec::AVX index_f{ .f8_ = (500.f/5.f) * $.f8_ + _mm256_set1_ps(500.f) };
+		meave::vec::AVX index_f{ .f8_ = (S_2/5.f) * $.f8_ + _mm256_set1_ps(float(S_2)) };
 		meave::vec::AVX index{ .i8_ = _mm256_cvtps_epi32(index_f.f8_) };
 		return meave::vec::AVX{ .f8_ = _mm256_i32gather_ps(data_, index.i8_, 4) };
 	}
@@ -79,9 +85,9 @@ public:
 
 } /* namespace aux */
 
-template <float F(float)>
+template <float F(float), unsigned SAMPLES = 1000>
 meave::vec::AVX precalculated(const meave::vec::AVX $) noexcept {
-	static aux::PrecalculateExp<F> pexp;
+	static aux::Precalculate<F, SAMPLES> pexp;
 	return pexp($);
 }
 
