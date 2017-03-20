@@ -81,14 +81,18 @@ public:
 		meave::vec::AVX index{ .i8_ = _mm256_cvtps_epi32(index_f.f8_) };
 		return meave::vec::AVX{ .f8_ = _mm256_i32gather_ps(data_, index.i8_, 4) };
 	}
+
+	static Precalculate $;
 };
+
+template <float F(float), unsigned SAMPLES>
+Precalculate<F, SAMPLES> Precalculate<F, SAMPLES>::$;
 
 } /* namespace aux */
 
 template <float F(float), unsigned SAMPLES = 1000>
 meave::vec::AVX precalculated(const meave::vec::AVX $) noexcept {
-	static aux::Precalculate<F, SAMPLES> pexp;
-	return pexp($);
+	return aux::Precalculate<F, SAMPLES>::$($);
 }
 
 } } /* namespace ::meave::math */
