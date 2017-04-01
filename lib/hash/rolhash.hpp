@@ -8,18 +8,18 @@
 #include <meave/lib/vec.hpp>
 
 extern "C" {
-#include "rothash.h"
+#include "rolhash.h"
 }
 
-namespace meave { namespace rothash {
+namespace meave { namespace rolhash {
 
 	static inline ::uint32_t asm_avx2(const ::uint8_t *p, const ::size_t len, const unsigned rot_bits) noexcept {
-		return ::rothash_kernel_avx2(p, len, rot_bits);
+		return ::rolhash_kernel_avx2(p, len, rot_bits);
 	}
 
-} } /* namespace meave::rothash */
+} } /* namespace meave::rolhash */
 
-namespace meave { namespace rothash {
+namespace meave { namespace rolhash {
 
 namespace aux {
 
@@ -484,9 +484,9 @@ typename aux::HashFunc4<ROL_BITS0, ROL_BITS1>::Result naive4(const ::uint8_t *p,
 	return aux::HashFunc4<ROL_BITS0, ROL_BITS1>::hash(p, len);
 }
 
-} } /* meave::rothash */
+} } /* meave::rolhash */
 
-namespace meave { namespace rothash {
+namespace meave { namespace rolhash {
 
 namespace aux { namespace avx2 {
 
@@ -1008,6 +1008,6 @@ template <unsigned ROL_BITS0>
 	return aux::sse::HashFunc1_1<ROL_BITS0>::hash(p, len);
 }
 
-} } /* namespace ::meave::rothash */
+} } /* namespace ::meave::rolhash */
 
 #endif // MEAVE_LIB_ROTHASH_ROTHASH_HPP

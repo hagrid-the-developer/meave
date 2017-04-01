@@ -10,10 +10,10 @@
 # * http://x86.renejeschke.de/html/file_module_x86_id_181.html
 # * https://en.wikipedia.org/wiki/X86_calling_conventions
 
-	.globl	rothash_kernel_avx2
-	.type	rothash_lernel_avx2,@function
+	.globl	rolhash_kernel_avx2
+	.type	rolhash_lernel_avx2,@function
 	.align	16
-rothash_kernel_avx2:
+rolhash_kernel_avx2:
 	#rdi -- pointer src array
 	#rsi -- length of the array (number of bytes)
 	#rdx -- rol bits

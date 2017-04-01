@@ -1,5 +1,5 @@
 
-./test-rothash:     file format elf64-x86-64
+./test-rolhash:     file format elf64-x86-64
 
 
 Disassembly of section .init:
@@ -401,7 +401,7 @@ Disassembly of section .text:
   401334:	00 
   401335:	0f 18 94 03 c0 00 00 	prefetcht1 0xc0(%rbx,%rax,1)
   40133c:	00 
-  40133d:	e8 ae 08 00 00       	callq  401bf0 <rothash_kernel_avx2>
+  40133d:	e8 ae 08 00 00       	callq  401bf0 <rolhash_kernel_avx2>
   401342:	4b 8d 14 26          	lea    (%r14,%r12,1),%rdx
   401346:	41 31 c5             	xor    %eax,%r13d
   401349:	48 81 fa 00 2d 31 01 	cmp    $0x1312d00,%rdx
@@ -1012,14 +1012,14 @@ Disassembly of section .text:
   401bec:	00 00 00 
   401bef:	90                   	nop
 
-0000000000401bf0 <rothash_kernel_avx2>:
+0000000000401bf0 <rolhash_kernel_avx2>:
   401bf0:	c5 ec 57 d2          	vxorps %ymm2,%ymm2,%ymm2
   401bf4:	c5 dc 57 e4          	vxorps %ymm4,%ymm4,%ymm4
   401bf8:	c5 cc 57 f6          	vxorps %ymm6,%ymm6,%ymm6
   401bfc:	c4 41 3c 57 c0       	vxorps %ymm8,%ymm8,%ymm8
   401c01:	48 89 f2             	mov    %rsi,%rdx
   401c04:	48 c1 ea 07          	shr    $0x7,%rdx
-  401c08:	74 5a                	je     401c64 <rothash_kernel_avx2+0x74>
+  401c08:	74 5a                	je     401c64 <rolhash_kernel_avx2+0x74>
   401c0a:	c5 e5 72 f2 0d       	vpslld $0xd,%ymm2,%ymm3
   401c0f:	c5 d5 72 f4 0d       	vpslld $0xd,%ymm4,%ymm5
   401c14:	c5 c5 72 f6 0d       	vpslld $0xd,%ymm6,%ymm7
@@ -1038,19 +1038,19 @@ Disassembly of section .text:
   401c53:	c5 3c 57 47 60       	vxorps 0x60(%rdi),%ymm8,%ymm8
   401c58:	48 8d bf 80 00 00 00 	lea    0x80(%rdi),%rdi
   401c5f:	48 ff ca             	dec    %rdx
-  401c62:	75 a6                	jne    401c0a <rothash_kernel_avx2+0x1a>
+  401c62:	75 a6                	jne    401c0a <rolhash_kernel_avx2+0x1a>
   401c64:	66 0f 7e d0          	movd   %xmm2,%eax
   401c68:	c3                   	retq   
   401c69:	48 89 f2             	mov    %rsi,%rdx
   401c6c:	48 c1 ea 05          	shr    $0x5,%rdx
-  401c70:	74 1b                	je     401c8d <rothash_kernel_avx2+0x9d>
+  401c70:	74 1b                	je     401c8d <rolhash_kernel_avx2+0x9d>
   401c72:	c5 e5 72 f2 0d       	vpslld $0xd,%ymm2,%ymm3
   401c77:	c5 ed 72 d2 1d       	vpsrld $0x1d,%ymm2,%ymm2
   401c7c:	c5 e5 eb d2          	vpor   %ymm2,%ymm3,%ymm2
   401c80:	c5 ec 57 17          	vxorps (%rdi),%ymm2,%ymm2
   401c84:	48 8d 7f 20          	lea    0x20(%rdi),%rdi
   401c88:	48 ff ca             	dec    %rdx
-  401c8b:	75 e5                	jne    401c72 <rothash_kernel_avx2+0x82>
+  401c8b:	75 e5                	jne    401c72 <rolhash_kernel_avx2+0x82>
   401c8d:	66 0f 7e d0          	movd   %xmm2,%eax
   401c91:	c3                   	retq   
   401c92:	c4 e3 7d 19 d3 01    	vextractf128 $0x1,%ymm2,%xmm3
@@ -1064,7 +1064,7 @@ Disassembly of section .text:
   401cb1:	48 83 e6 1f          	and    $0x1f,%rsi
   401cb5:	48 89 f2             	mov    %rsi,%rdx
   401cb8:	48 c1 ea 04          	shr    $0x4,%rdx
-  401cbc:	74 1a                	je     401cd8 <rothash_kernel_avx2+0xe8>
+  401cbc:	74 1a                	je     401cd8 <rolhash_kernel_avx2+0xe8>
   401cbe:	c5 e1 72 f2 0d       	vpslld $0xd,%xmm2,%xmm3
   401cc3:	c5 e9 72 d2 1d       	vpsrld $0x1d,%xmm2,%xmm2
   401cc8:	c5 e1 eb d2          	vpor   %xmm2,%xmm3,%xmm2
@@ -1075,7 +1075,7 @@ Disassembly of section .text:
   401cdb:	c5 e0 57 d2          	vxorps %xmm2,%xmm3,%xmm2
   401cdf:	48 89 f2             	mov    %rsi,%rdx
   401ce2:	48 c1 ea 03          	shr    $0x3,%rdx
-  401ce6:	74 1e                	je     401d06 <rothash_kernel_avx2+0x116>
+  401ce6:	74 1e                	je     401d06 <rolhash_kernel_avx2+0x116>
   401ce8:	c5 e1 72 f2 0d       	vpslld $0xd,%xmm2,%xmm3
   401ced:	c5 e9 72 d2 1d       	vpsrld $0x1d,%xmm2,%xmm2
   401cf2:	c5 e1 eb d2          	vpor   %xmm2,%xmm3,%xmm2
@@ -1087,7 +1087,7 @@ Disassembly of section .text:
   401d0b:	c5 e0 57 d2          	vxorps %xmm2,%xmm3,%xmm2
   401d0f:	48 89 f2             	mov    %rsi,%rdx
   401d12:	48 c1 ea 02          	shr    $0x2,%rdx
-  401d16:	74 1e                	je     401d36 <rothash_kernel_avx2+0x146>
+  401d16:	74 1e                	je     401d36 <rolhash_kernel_avx2+0x146>
   401d18:	c5 e1 72 f2 0d       	vpslld $0xd,%xmm2,%xmm3
   401d1d:	c5 e9 72 d2 1d       	vpsrld $0x1d,%xmm2,%xmm2
   401d22:	c5 e1 eb d2          	vpor   %xmm2,%xmm3,%xmm2
