@@ -7,8 +7,8 @@
 #include <meave/lib/gettime.hpp>
 #include <meave/lib/utils.hpp>
 #include <meave/lib/raii/mmap_pointer.hpp>
-#include <meave/lib/rolhash/rolhash.hpp>
-#include <meave/lib/rolhash/fnv.hpp>
+#include <meave/lib/hash/hash.hpp>
+#include <meave/lib/hash/fnv.hpp>
 
 #define ARRAY_LEN (20000000)
 
