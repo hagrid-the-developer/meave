@@ -3,6 +3,7 @@
 
 /*
  * https://software.intel.com/en-us/articles/fast-computation-of-fletcher-checksums
+ * https://en.wikipedia.org/wiki/Fletcher%27s_checksum
  */
 
 #include <cassert>
