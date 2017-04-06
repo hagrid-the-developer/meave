@@ -2,6 +2,7 @@
 #	define MEAVE_LIB_MATH_FUNCS_HPP
 
 #	include <cmath>
+#	include "meave/lib/simd.hpp"
 
 namespace meave { namespace math {
 
