@@ -2,7 +2,6 @@
 #	define MEAVE_LIB_MATH_FUNCS_HPP
 
 #	include <cmath>
-#	include "meave/lib/simd.hpp"
 
 namespace meave { namespace math {
 
@@ -27,6 +26,18 @@ template<typename T>
 T rel_err(const T &x, const T &y) {
 	const T abs_x = x >= T() ? x : -x;
 	return abs_err(x, y) / abs_x;
+}
+
+} } /* namespace meave::math */
+
+/* Simd Part */
+#	include "meave/lib/simd.hpp"
+
+namespace meave { namespace math {
+
+meave::simd::AVX abs(const meave::simd::AVX &x) noexcept {
+	// http://stackoverflow.com/questions/5508628/how-to-absolute-2-double-or-4-floats-using-sse-instruction-set-up-to-sse4
+	return _mm256_andnot_ps(_mm256_set1_ps(-0.f), x);
 }
 
 } } /* namespace meave::math */

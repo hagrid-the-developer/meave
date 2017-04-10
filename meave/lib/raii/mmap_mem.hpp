@@ -5,7 +5,6 @@
 #include <unistd.h>
 
 #include <meave/lib/error.hpp>
-#include <meave/lib/raii/fd.hpp>
 
 namespace meave { namespace raii {
 
@@ -21,7 +20,11 @@ namespace meave { namespace raii {
 			if (!size)
 				return;
 
+#ifdef __linux__
 			enum { ALLOWED_FLAGS = MAP_HUGETLB | MAP_LOCKED };
+#else
+			enum { ALLOWED_FLAGS = 0 };
+#endif
 			assert( !(flags & ~ALLOWED_FLAGS) );
 
 			const int pt = PROT_READ | PROT_WRITE;
