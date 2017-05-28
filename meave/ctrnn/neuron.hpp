@@ -3,7 +3,7 @@
 
 #	include <cassert>
 
-#	include "meave/lib/commons.hpp"
+#	include "meave/commons.hpp"
 #	include "meave/lib/math.hpp"
 #	include "meave/lib/simd.hpp"
 
@@ -26,8 +26,7 @@ public:
 	}
 
 	template <typename ItY, typename ItW>
-	Float val(const Float y, const Float time_constant, const Float ext_inp, const ItY b_y, const ItY e_y, const ItW b_w, const ItW e_w) const noexcept
-	{
+	Float val(const Float y, const Float time_constant, const Float ext_inp, const ItY b_y, const ItY e_y, const ItW b_w, const ItW e_w) const noexcept {
 		assert($::distance(b_w, e_w) == $::distance(b_y, e_y));
 
 		Float sum = 0;
@@ -42,14 +41,12 @@ public:
 		return y + time_step_*(-y + sum + ext_inp)/time_constant;
 	}
 
-	Float sigm(const Float val, const Float bias) const noexcept
-	{
+	Float sigm(const Float val, const Float bias) const noexcept {
 		return meave::math::sigmoid(bias + val);
 	}
 
 	template <typename ItY, typename ItW>
-	Float operator()(const Float y, const Float ext_inp, const ItY b_y, const ItY e_y, const ItW b_w, const ItW e_w) const noexcept
-	{
+	Float operator()(const Float y, const Float ext_inp, const ItY b_y, const ItY e_y, const ItW b_w, const ItW e_w) const noexcept {
 		return sigm(val(y, ext_inp, b_y, e_y, b_w, e_w));
 	}
 };
@@ -68,8 +65,8 @@ protected:
 public:
 	NNCalc(const UnitsNum<Len> &units_num, const TimeStep<Float> &time_step)
 	:	NeuronCalc<Float>(time_step)
-	,	units_num_(*units_num)
-	{ }
+	,	units_num_(*units_num) {
+	}
 
 	template<typename ItY, typename ItTC, typename ItEI, typename ItW, typename ItV>
 	ItV val(const ItY &b_y, const ItTC &b_tc, const ItEI &b_ei, const ItW &b_w, const ItV &b_v) const noexcept {
@@ -117,16 +114,15 @@ protected:
 
 public:
 	NeuronCalcAVX(const TimeStep<Float> &time_step)
-	:	time_step_(_mm256_set1_ps(*time_step))
-	{ }
+	:	time_step_(_mm256_set1_ps(*time_step)) {
+	}
 
 	AVX time_step() const noexcept {
 		return time_step_;
 	}
 
 	template <typename ItY, typename ItW>
-	AVX val(const AVX y, const AVX time_constant, const AVX ext_inp, const ItY b_y, const ItY e_y, const ItW b_w, const ItW e_w) const noexcept
-	{
+	AVX val(const AVX y, const AVX time_constant, const AVX ext_inp, const ItY b_y, const ItY e_y, const ItW b_w, const ItW e_w) const noexcept {
 		assert($::distance(b_w, e_w) == $::distance(b_y, e_y));
 
 		AVX sum = _mm256_setzero_ps();
@@ -143,16 +139,14 @@ public:
 		return y + time_step_*(-y + sum + ext_inp)/time_constant;
 	}
 
-	Float sigm(const Float val, const Float bias) const noexcept
-	{
+	Float sigm(const Float val, const Float bias) const noexcept {
 #error Add own implementation of exp(.)
 #error Maybe use tables as is in the original code...
 		return meave::math::sigmoid(bias + val);
 	}
 
 	template <typename ItY, typename ItW>
-	Float operator()(const Float y, const Float ext_inp, const ItY b_y, const ItY e_y, const ItW b_w, const ItW e_w) const noexcept
-	{
+	Float operator()(const Float y, const Float ext_inp, const ItY b_y, const ItY e_y, const ItW b_w, const ItW e_w) const noexcept	{
 		return sigm(val(y, ext_inp, b_y, e_y, b_w, e_w));
 	}
 };

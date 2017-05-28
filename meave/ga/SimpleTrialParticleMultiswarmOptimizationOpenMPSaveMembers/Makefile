@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-ROOT := $(shell x='.' && while true; do [ -e "$$x/_" ] && echo "$$x" && break; x="$$x/.."; echo >&2 "$$x"; done)
+ROOT := $(shell cd $(shell x='.' && while true; do [ -e "$$x/_" ] && echo "$$x" && break; x="$$x/.."; echo >&2 "$$x"; done) && pwd)
 CC := g++
 
 PKG_CONFIG_PATH = $(ROOT)/_/_glog/lib/pkgconfig:$(ROOT)/_/_jansson/lib/pkgconfig
@@ -8,7 +8,7 @@ PKG_CONFIG_PATH = $(ROOT)/_/_glog/lib/pkgconfig:$(ROOT)/_/_jansson/lib/pkgconfig
 GLOG_CPPFLAGS = $(shell PKG_CONFIG_PATH=${PKG_CONFIG_PATH} pkg-config --cflags libglog)
 GLOG_LDFLAGS = $(shell PKG_CONFIG_PATH=${PKG_CONFIG_PATH} pkg-config --libs libglog)
 
-MEAVE_CPPFLAGS = -std=gnu++1z -I$(ROOT)/.. -fopenmp
+MEAVE_CPPFLAGS = -std=gnu++1z -I$(ROOT) -fopenmp
 MEAVE_LDFLAGS = -fopenmp
 
 #CPPFLAGS += ${MEAVE_CPPFLAGS} ${BOOST_CPPFLAGS} ${GLOG_CPPFLAGS} ${JASSON_CPPFLAGS} -Wall -Werror -O0 -pthread -ggdb -finput-charset=UTF-8

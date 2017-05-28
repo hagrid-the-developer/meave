@@ -343,7 +343,7 @@ private:
 			}
 		}
 
-		const Float $$ = 1 - f / (P::trial() - P::eval());
+		const AVX $$ = 1 - f / (P::trial() - P::eval());
 		return $$;
 	}
 
