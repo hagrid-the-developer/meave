@@ -1,7 +1,7 @@
 #ifndef MEAVE_RAII_ACCUMULATE_FLUSH_HPP_INCLUDED
 #	define MEAVE_RAII_ACCUMULATE_FLUSH_HPP_INCLUDED
 
-#include "meave/lib/commons.hpp"
+#include "meave/commons.hpp"
 #include "meave/lib/error.hpp"
 #include "meave/lib/raii/fd.hpp"
 #include "meave/lib/vec_of_pods.hpp"

@@ -2,7 +2,7 @@
 #include <boost/assert.hpp>
 #include <glog/logging.h>
 #include <iostream>
-#include <meave/lib/commons.hpp>
+#include <meave/commons.hpp>
 #include <meave/lib/math.hpp>
 #include <meave/lib/_42.hpp>
 #include <meave/ctrnn/neuron.hpp>

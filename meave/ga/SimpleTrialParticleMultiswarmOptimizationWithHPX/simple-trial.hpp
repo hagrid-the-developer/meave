@@ -1,7 +1,7 @@
 #ifndef MEAVE_GA_SIMPLE_TRIAL_PARTICLE_MULTISWARM_OPTIMIZATION_HPP
 #	define MEAVE_GA_SIMPLE_TRIAL_PARTICLE_MULTISWARM_OPTIMIZATION_HPP
 
-#	include "meave/lib/commons.hpp"
+#	include "meave/commons.hpp"
 #	include "meave/lib/math.hpp"
 #	include "meave/lib/seed.hpp"
 #	include "meave/lib/str_printf.hpp"
