@@ -31,6 +31,26 @@ union AVX {
 	::uint32_t dw_[8];
 	::uint64_t qw_[4];
 	::uint8_t b_[32];
+
+	AVX(const __m256i &$)
+	:	i8_($) {
+	}
+	AVX(const __m256 &$)
+	:	f8_($) {
+	}
+	AVX(const __m256d &$)
+	:	d4_($) {
+	}
+
+	operator __m256i() const noexcept {
+		return i8_;
+	}
+	operator __m256() const noexcept {
+		return f8_;
+	}
+	operator __m256d() const noexcept {
+		return d4_;
+	}
 };
 
 } } /* namespace meave::simd */

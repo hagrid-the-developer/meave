@@ -140,8 +140,8 @@ public:
 	}
 
 	Float sigm(const Float val, const Float bias) const noexcept {
-#error Add own implementation of exp(.)
-#error Maybe use tables as is in the original code...
+		// Add own implementation of exp(.)
+		// Maybe use tables as is in the original code...
 		return meave::math::sigmoid(bias + val);
 	}
 
