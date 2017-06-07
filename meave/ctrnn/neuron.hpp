@@ -108,21 +108,21 @@ public:
 class NeuronCalcAVX {
 protected:
 	using Float = float;
-	using AVX = ::meave::vec::AVX;
+	using AVX = ::meave::simd::AVX;
 
-	const AVX time_step_;
+	const Float time_step_;
 
 public:
 	NeuronCalcAVX(const TimeStep<Float> &time_step)
-	:	time_step_(_mm256_set1_ps(*time_step)) {
+	:	time_step_(*time_step) {
 	}
 
-	AVX time_step() const noexcept {
+	Float time_step() const noexcept {
 		return time_step_;
 	}
 
 	template <typename ItY, typename ItW>
-	AVX val(const AVX y, const AVX time_constant, const AVX ext_inp, const ItY b_y, const ItY e_y, const ItW b_w, const ItW e_w) const noexcept {
+	AVX val(const AVX y, const Float time_constant, const AVX ext_inp, const ItY b_y, const ItY e_y, const ItW b_w, const ItW e_w) const noexcept {
 		assert($::distance(b_w, e_w) == $::distance(b_y, e_y));
 
 		AVX sum = _mm256_setzero_ps();
@@ -133,10 +133,10 @@ public:
 			MEAVE_ASSERT(jt != e_w);
 			const AVX x = _mm256_load_ps(&*it);
 			const AVX w = _mm256_broadcast_ps(&*jt);
-			sum += x * w;
+			sum.f8_ += x.f8_ * w.f8_;
 		}
 
-		return y + time_step_*(-y + sum + ext_inp)/time_constant;
+		return y.f8_ + time_step_*(-y.f8_ + sum.f8_ + ext_inp.f8_)/time_constant;
 	}
 
 	Float sigm(const Float val, const Float bias) const noexcept {
@@ -151,19 +151,17 @@ public:
 	}
 };
 
-PARAM_CLASS(UnitsNum)
-
 /**
  * Fully connected CTRNN .
  *
  */
 template<typename Float, typename Len>
-class NNCalc : NeuronCalc<Float> {
+class NNCalcAVX : NeuronCalc<Float> {
 protected:
 	const Len units_num_;
 
 public:
-	NNCalc(const UnitsNum<Len> &units_num, const TimeStep<Float> &time_step)
+	NNCalcAVX(const UnitsNum<Len> &units_num, const TimeStep<Float> &time_step)
 	:	NeuronCalc<Float>(time_step)
 	,	units_num_(*units_num)
 	{ }
