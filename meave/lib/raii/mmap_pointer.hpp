@@ -25,11 +25,11 @@ public:
 	MMapPointer &operator=(const MMapPointer &) = delete;
 	MMapPointer &operator=(MMapPointer &&x) = default;
 
-	T *operator*() noexcept {
+	T *operator*() noexcept __attribute__((assume_aligned(4096))) {
 		return reinterpret_cast<T*>(*p_);
 	}
 
-	const T *operator*() const noexcept {
+	const T *operator*() const noexcept __attribute__((assume_aligned(4096))) {
 		return reinterpret_cast<const T*>(*p_);
 	}
 

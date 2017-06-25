@@ -18,7 +18,7 @@ namespace meave { namespace raii {
 		::size_t file_size_;
 
 	public:
-		MMapCreate(const char *filename, const ::size_t file_size) throw(Error)
+		MMapCreate(const char *filename, const ::size_t file_size)
 		: mem_(nullptr)
 		, file_size_(file_size)
 		{
@@ -45,10 +45,10 @@ namespace meave { namespace raii {
 			x.file_size_ = 0;
 		}
 
-		void* operator*() noexcept {
+		void* operator*() noexcept __attribute__((assume_aligned(4096))) {
 			return mem_;
 		}
-		const void* operator*() const noexcept {
+		const void* operator*() const noexcept __attribute__((assume_aligned(4096))) {
 			return mem_;
 		}
 

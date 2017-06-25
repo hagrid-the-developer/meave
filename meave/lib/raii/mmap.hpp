@@ -46,7 +46,7 @@ namespace meave { namespace raii {
 			x.mem_ = nullptr;
 		}
 
-		const void* operator*() const noexcept {
+		const void* operator*() const noexcept __attribute__((assume_aligned(4096))) {
 			return mem_;
 		}
 
