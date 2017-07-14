@@ -5,7 +5,7 @@
 #include <meave/lib/math/funcs_approx.hpp>
 #include <meave/lib/gettime.hpp>
 #include <meave/lib/raii/mmap_pointer.hpp>
-#include <meave/lib/math/precalculate_log.hpp>
+#include <meave/lib/math/precalculate.hpp>
 #include <meave/lib/utils.hpp>
 
 #define ARRAY_LEN (20000*1024 + 24)

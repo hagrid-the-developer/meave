@@ -1,6 +1,7 @@
 #ifndef MEAVE_RAII_MKL_ALLOC_HPP_INCLUDED
 #	define MEAVE_RAII_MKL_ALLOC_HPP_INCLUDED
 
+#include <mkl.h>
 #include <sys/mman.h>
 #include <unistd.h>
 
@@ -8,7 +9,7 @@
 
 namespace meave { namespace raii {
 
-	template<typename T=float, int ALIGNMENT=64>
+	template<typename T=float, int ALIGNMENT=64, int SIZE_ALIGNMENT=64>
 	class MklAlloc {
 	private:
 		void *mem_;
@@ -19,7 +20,7 @@ namespace meave { namespace raii {
 			if (!size)
 				return;
 
-			mem_ = ::mkl_alloc(size, ALIGNMENT);
+			mem_ = ::mkl_alloc((size + SIZE_ALIGNMENT - 1) / SIZE_ALIGNMENT * SIZE_ALIGNMENT, ALIGNMENT);
 		}
 
 		MklAlloc(const MklAlloc&) = delete;
