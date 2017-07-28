@@ -15,12 +15,12 @@ namespace meave { namespace raii {
 		void *mem_;
 
 	public:
-		MklAlloc(const ::size_t size) throw(Error)
+		MklAlloc(const ::size_t size)
 		: mem_(nullptr) {
 			if (!size)
 				return;
 
-			mem_ = ::mkl_alloc((size + SIZE_ALIGNMENT - 1) / SIZE_ALIGNMENT * SIZE_ALIGNMENT, ALIGNMENT);
+			mem_ = ::mkl_malloc(sizeof(T) * (size + SIZE_ALIGNMENT - 1) / SIZE_ALIGNMENT * SIZE_ALIGNMENT, ALIGNMENT);
 		}
 
 		MklAlloc(const MklAlloc&) = delete;
@@ -35,6 +35,12 @@ namespace meave { namespace raii {
 		}
 		T* operator*() noexcept __attribute__((assume_aligned(ALIGNMENT))) {
 			return reinterpret_cast<T*>(mem_);
+		}
+		const T& operator[](const ::size_t index) const noexcept {
+			return reinterpret_cast<T*>(mem_)[index];
+		}
+		T& operator[](const ::size_t index) noexcept {
+			return reinterpret_cast<T*>(mem_)[index];
 		}
 
 		MklAlloc& operator=(MklAlloc&) = delete;
