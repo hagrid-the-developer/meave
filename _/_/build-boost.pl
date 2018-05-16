@@ -10,7 +10,7 @@ use Log::Log4perl qw(:easy);
 
 Log::Log4perl->easy_init($DEBUG);
 
-const my $BOOST_URL => 'http://sourceforge.net/projects/boost/files/boost/1.61.0/boost_1_61_0.tar.bz2/download';
+const my $BOOST_URL => 'http://sourceforge.net/projects/boost/files/boost/1.67.0/boost_1_67_0.tar.bz2/download';
 const my $BOOST_VERSION => ($BOOST_URL =~ m{boost/(\d+[.]\d+[.]\d+)/})[0];
 const my $WD => getcwd;
 const my $OPT => "$WD";
