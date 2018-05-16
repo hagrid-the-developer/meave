@@ -64,7 +64,8 @@ Algorithm
             if (attempt to store the element as with fixed-length queue succeed)
                 return;
             
-It would be probably possible to do the attempts for store/load in a cycle without repeating the whole cycle for every attempt.
+  * It would be probably possible to do the attempts for store/load in a cycle without repeating the whole cycle for every attempt.
+  * One can also remember last non-empty/non-full queue from the previous turn to avoid scanning of queues from the beginning.
 
 
 Drawbacks
