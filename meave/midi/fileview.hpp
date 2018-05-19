@@ -130,7 +130,7 @@ public:
 			return nullptr;
 
 		Event const* p = reinterpret_cast<Event const*>(&bytes[index]);
-		if ( !(p->status_channel_ & (1<<7)) )
+		if ( !(p->status_channel_ & 0x80) )
 			return nullptr;
 
 		return p;
@@ -220,8 +220,8 @@ uns read_varint(uint8_t const* p, const size_t len, size_t& i) {
 		if (representation_length >= 4)
 			throw Error("Cannot parse variable length value: Out of bounds");
 		uns x = p[i];
-		const uns v = x & ~(1U << 7);
-		is_last = !(x & (1U << 7));
+		const uns v = x & 0x7F;
+		is_last = !(x & 0x80);
 		LOG(INFO) << "Byte: " << std::hex << x << "; v: " << v << "; is_last: " << is_last << std::dec << std::endl;
 		val = val << 7 | v;
 	}
