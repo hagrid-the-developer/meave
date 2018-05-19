@@ -3,6 +3,7 @@
 #include <boost/endian/conversion.hpp>
 #include <cassert>
 #include <cstdint>
+#include <iomanip>
 #include <ios>
 #include <iostream>
 #include <type_traits>
@@ -149,6 +150,105 @@ std::ostream& operator<<(std::ostream& o, const Event& e)
 		     ", data: " << e.data_byte_0() << ", " << e.data_byte_1() << std::dec;
 }
 
+class SysEx {
+	uint8_t f7_;
+	uint8_t manufacturer_;
+	uint8_t bytes_[1]; // At least one byte -- the end
+public:
+	static SysEx const *get(uint8_t const* bytes, const size_t len, size_t& index) {
+		if (index + sizeof(SysEx) >= len)
+			return nullptr;
+
+		SysEx const* p = reinterpret_cast<SysEx const*>(&bytes[index]);
+		if (p->f7_ != 0xF7)
+			return nullptr;
+
+		// FIXME: Not all SysEx messages ends with 0xF7
+		auto last = static_cast<uint8_t const*>( ::memchr(p->bytes_, 0xF7, len - 2) );
+		if (!last)
+			throw Error("Cannot parse SysEx: Premature end of buffer");
+		index = last - bytes;
+
+		return p;
+	}
+
+	uint8_t manufacturer() const noexcept {
+		return manufacturer_;
+	}
+};
+
+uns read_varint(uint8_t const* p, const size_t len, size_t& i) {
+	uns val = 0;
+	bool is_last = false;
+	uns representation_length = 0;
+	for (; !is_last; ++i, ++representation_length) {
+		if (i >= len)
+			throw Error("Cannot parse variable length value: Premature end of buffer");
+		if (representation_length >= 4)
+			throw Error("Cannot parse variable length value: Out of bounds");
+		uns x = p[i];
+		const uns v = x & ~(1U << 7);
+		is_last = !(x & (1U << 7));
+		LOG(INFO) << "Byte: " << std::hex << x << "; v: " << v << "; is_last: " << is_last << std::dec << std::endl;
+		val = val << 7 | v;
+	}
+	return val;
+}
+
+class Metaevent {
+	uint8_t ff_;
+	uint8_t type_;
+	uint8_t length_data_[1]; // At least one byte
+public:
+	static Metaevent const *get(uint8_t const* bytes, const size_t len, size_t& index) {
+		if (index + sizeof(Metaevent) >= len)
+			return nullptr;
+
+		Metaevent const* p = reinterpret_cast<Metaevent const*>(&bytes[index]);
+		if (p->ff_ != 0xFF)
+			return nullptr;
+
+		index += 2;
+		const auto data_len = read_varint(bytes, len, index);
+		index += data_len;
+
+		return p;
+	}
+
+	uns type() const noexcept {
+		return type_;
+	}
+
+	uns length() const noexcept {
+		size_t i = 0;
+		return read_varint(length_data_, ~size_t(0), i);
+	}
+
+	uint8_t const* data() const noexcept {
+		size_t i = 0;
+		read_varint(length_data_, ~size_t(0), i);
+		return &length_data_[i];
+	}
+}__attribute__((packed));
+
+std::ostream& operator<<(std::ostream& o, const Metaevent& me)
+{
+	o << "type: " << me.type() <<
+	     ", length: " << me.length() <<
+	     ", data: ";
+	for (auto p = me.data(), e = me.data() + me.length(); p < e; ++p) {
+		const uns u = *p;
+		if (u >= 32 && u <= 126)
+			o << char(u);
+		else
+			o << "\\x" << std::hex << std::setw(2) << u << std::dec;
+	}
+	return o;
+}
+
+uns read_delta_time(uint8_t const* bytes, const size_t len, size_t& i) {
+	return read_varint(bytes, len, i);
+}
 
 } /* namespace detail */
 
@@ -172,9 +272,16 @@ public:
 			chunk_header.check();
 			o << "\n\t" << chunk_header.name() << ": " << chunk_header;
 
-			for (uns i = 0; i < chunk_header.length(); ++i) {
-				auto e = read<detail::Event>(idx);
-				o << "\n\t\t" << e;
+			for (uns end = idx + chunk_header.length(); idx < end;) {
+				const auto dt = detail::read_delta_time(data_, len_, idx);
+				o << "\n\t\t" << "Deltatime: " << dt;
+
+				if (auto metaevent = detail::Metaevent::get(data_, len_, idx)) {
+					o << "\n\t\tMetaEvent: " << *metaevent;
+				} else {
+					auto e = read<detail::Event>(idx);
+					o << "\n\t\tEvent: " << e;
+				}
 			}
 		}
 	
