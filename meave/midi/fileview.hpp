@@ -47,12 +47,27 @@ enum Status {
 	, STATUS_SYS_EXMESSAGE        = 0xF0
 };
 
+// TODO: signed values
+template <typename T>
+T read_int(uint8_t const* p, const size_t len, size_t& i) {
+	constexpr auto RESULT_SIZE = sizeof(T);
+
+	if (i + RESULT_SIZE > len)
+		throw Error("Cannot read integer value: Premature end of buffer");
+
+	T res{};
+	for (const auto end = i + RESULT_SIZE; i < end; ++i) {
+		res = res << 8 | p[i];
+	}
+	return res;
+}
+
 class Header {
 	uint8_t str_MThd_[4];    // MThd
-	uint32_t header_size_;   // 0x00 0x00 0x00 0x06
-	uint16_t file_format_;
-	uint16_t number_of_tracks_;
-	uint16_t delte_time_ticks_per_quarter_note_;
+	uint8_t header_size_[4];   // 0x00 0x00 0x00 0x06
+	uint8_t file_format_[2];
+	uint8_t number_of_tracks_[2];
+	uint8_t delte_time_ticks_per_quarter_note_[2];
 
 public:
 	static constexpr const char* name() {
@@ -60,27 +75,31 @@ public:
 	}
 
 	uint32_t header_size() const noexcept {
-		return be::big_to_native(header_size_);
+		size_t i{};
+		return read_int<uint32_t>(header_size_, ~size_t(0), i);
 	}
 
 	FileFormat file_format() const noexcept {
-		return FileFormat(file_format_);
+		size_t i{};
+		return FileFormat(read_int<uint16_t>(file_format_, ~size_t(0), i));
 	}
 
 	uint16_t number_of_tracks() const noexcept {
-		return be::big_to_native(number_of_tracks_);
+		size_t i{};
+		return detail::read_int<uint16_t>(number_of_tracks_, ~size_t(0), i);
 	}
 
 	uint16_t delte_time_ticks_per_quarter_note() const noexcept {
-		return be::big_to_native(delte_time_ticks_per_quarter_note_);
+		size_t i{};
+		return read_int<uint16_t>(delte_time_ticks_per_quarter_note_, ~size_t(0), i);
 	}
 
 	void check() const {
 		if (memcmp(str_MThd_, "MThd", 4))
 			throw Error("Header doesn't contain MThd");
-//		if (header_size() != 6) // any value should be honored
-//			throw Error("Wrong header size: %u", uns(header_size()));
-		if (0 <= file_format_ && file_format_ <= 2)
+		if (header_size() != 6) // TODO: any value should be honored
+			throw Error("Wrong header size: %u", uns(header_size()));
+		if (file_format() > 2)
 			throw Error("Improper value for FileFormat");
 	}
 }__attribute__((packed));
