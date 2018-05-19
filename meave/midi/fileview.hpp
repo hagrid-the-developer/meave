@@ -78,8 +78,8 @@ public:
 	void check() const {
 		if (memcmp(str_MThd_, "MThd", 4))
 			throw Error("Header doesn't contain MThd");
-		if (header_size() != 6)
-			throw Error("Wrong header size: %u", uns(header_size()));
+//		if (header_size() != 6) // any value should be honored
+//			throw Error("Wrong header size: %u", uns(header_size()));
 		if (0 <= file_format_ && file_format_ <= 2)
 			throw Error("Improper value for FileFormat");
 	}
@@ -125,12 +125,23 @@ public:
 		return "Event";
 	}
 
+	static Event const *get(uint8_t const* bytes, const size_t len, size_t& index) {
+		if (index + sizeof(Event) >= len)
+			return nullptr;
+
+		Event const* p = reinterpret_cast<Event const*>(&bytes[index]);
+		if ( !(p->status_channel_ & (1<<7)) )
+			return nullptr;
+
+		return p;
+	}
+
 	uns channel() const noexcept {
-		return status_channel_ >> 8;
+		return status_channel_ & 0xF;
 	}
 
 	uns status() const noexcept {
-		return status_channel_ & 0xF;
+		return status_channel_ >> 4;
 	}
 
 	uns data_byte_0() const noexcept {
@@ -145,9 +156,31 @@ static_assert(std::is_pod<Event>::value);
 
 std::ostream& operator<<(std::ostream& o, const Event& e)
 {
-	return	o << "channel: " << e.channel() <<
-		     std::hex << ", status: " << e.status() <<
-		     ", data: " << e.data_byte_0() << ", " << e.data_byte_1() << std::dec;
+	return	o << "channel: " << std::hex << std::setw(1) << e.channel() <<
+		     ", status: " << std::setw(1) << e.status() <<
+		     ", data: " << std::setw(2) << e.data_byte_0() << ", " << std::setw(2) << e.data_byte_1() << std::dec;
+}
+
+class RunningStatus {
+	uint8_t data_bytes_[2];
+public:
+	static constexpr const char* name() {
+		return "RunningStatus";
+	}
+
+	uns data_byte_0() const noexcept {
+		return data_bytes_[0];
+	}
+
+	uns data_byte_1() const noexcept {
+		return data_bytes_[1];
+	}
+}__attribute__((packed));
+static_assert(std::is_pod<RunningStatus>::value);
+
+std::ostream& operator<<(std::ostream& o, const RunningStatus& e)
+{
+	return	o << std::hex << "data: " << std::setw(2) << e.data_byte_0() << ", " << std::setw(2) << e.data_byte_1() << std::dec;
 }
 
 class SysEx {
@@ -233,7 +266,7 @@ public:
 
 std::ostream& operator<<(std::ostream& o, const Metaevent& me)
 {
-	o << "type: " << me.type() <<
+	o << "type: 0x" << std::hex << std::setw(2) << me.type() << std::dec <<
 	     ", length: " << me.length() <<
 	     ", data: ";
 	for (auto p = me.data(), e = me.data() + me.length(); p < e; ++p) {
@@ -278,9 +311,11 @@ public:
 
 				if (auto metaevent = detail::Metaevent::get(data_, len_, idx)) {
 					o << "\n\t\tMetaEvent: " << *metaevent;
+				} else if (auto e = detail::Event::get(data_, len_, idx)) {
+					o << "\n\t\tEvent: " << *e;
 				} else {
-					auto e = read<detail::Event>(idx);
-					o << "\n\t\tEvent: " << e;
+					const auto rs = read<detail::RunningStatus>(idx);
+					o << "\n\t\tRunningStatus: " << rs;
 				}
 			}
 		}
