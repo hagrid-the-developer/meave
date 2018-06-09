@@ -1,2 +1,4 @@
+detail.hpp
+parser.hpp
 fileview.hpp
 fileview_main.cpp
