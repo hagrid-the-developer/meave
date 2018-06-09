@@ -10,6 +10,7 @@
 
 #include "meave/commons.hpp"
 #include "meave/lib/error.hpp"
+#include "meave/midi/commons.hpp"
 #include "meave/midi/detail.hpp"
 
 namespace meave::midi {

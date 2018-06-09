@@ -17,7 +17,14 @@ CPPFLAGS += ${MEAVE_CPPFLAGS} ${GLOG_CPPFLAGS} ${BOOST_CPPFLAGS} -Wall -Werror -
 LDFLAGS += -Wl,-rpath=${ROOT}/_/_glog/lib ${GLOG_LDFLAGS} ${BOOST_CPPFLAGS} -lpthread
 
 .PHONY: all
-all: fileview_main
+all: fileview_main parser_main
+
+# TODO: Rules don't reflect dependencies on header files!
+parser_main.o: parser_main.cpp parser.hpp
+	${CC} ${CPPFLAGS} -o parser_main.o -c parser_main.cpp
+
+parser_main: parser_main.o
+	${CC} parser_main.o ${LDFLAGS} -o parser_main
 
 fileview_main.o: fileview_main.cpp fileview.hpp
 	${CC} ${CPPFLAGS} -o fileview_main.o -c fileview_main.cpp
