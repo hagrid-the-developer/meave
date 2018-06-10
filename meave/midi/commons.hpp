@@ -21,6 +21,12 @@ $::ostream& operator<<($::ostream& o, const FileFormat $)
     __builtin_unreachable();
 }
 
+enum ChunkType {
+	  CHUNK_TYPE_MThd
+	, CHUNK_TYPE_MTrk
+	, CHUNK_TYPE_UNKNOWN
+};
+
 enum Status {
       STATUS_NOTE_OFF             = 0x80
     , STATUS_NOTE_ON              = 0x90

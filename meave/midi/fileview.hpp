@@ -186,24 +186,6 @@ public:
 	}
 };
 
-uns read_varint(uint8_t const* p, const size_t len, size_t& i) {
-	uns val = 0;
-	bool is_last = false;
-	uns representation_length = 0;
-	for (; !is_last; ++i, ++representation_length) {
-		if (i >= len)
-			throw Error("Cannot parse variable length value: Premature end of buffer");
-		if (representation_length >= 4)
-			throw Error("Cannot parse variable length value: Out of bounds");
-		uns x = p[i];
-		const uns v = x & 0x7F;
-		is_last = !(x & 0x80);
-		LOG(INFO) << "Byte: " << std::hex << x << "; v: " << v << "; is_last: " << is_last << std::dec << std::endl;
-		val = val << 7 | v;
-	}
-	return val;
-}
-
 class Metaevent {
 	uint8_t ff_;
 	uint8_t type_;

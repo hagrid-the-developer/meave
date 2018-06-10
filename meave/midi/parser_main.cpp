@@ -30,6 +30,16 @@ public:
 			     "\n\tdelta-time-ticks-per-quarter-note: " << delta_time_ticks_per_quarter_rate <<
 			     "\n";
 	}
+
+	void on_chunk_MTrk(const uns length) const {
+		std::cout << "MTrk chunk:" <<
+			     "\n\tlength: " << length <<
+			     "\n";
+	}
+	void on_chunk_unknown(const uns length) const {
+		std::cout << "Unknown chunk: " << length <<
+			     "\n";
+	}
 };
 
 } /* anonymous namespace */

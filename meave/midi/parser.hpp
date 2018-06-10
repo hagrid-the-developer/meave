@@ -15,11 +15,11 @@ template <typename DerivedT, typename RangeT>
 class Parser {
 	using It = typename boost::range_iterator<RangeT>::type;
 
-	DerivedT& that() noexcept {
-		return static_cast<DerivedT&>(*this);
+	DerivedT* $() noexcept {
+		return static_cast<DerivedT*>(this);
 	}
-	DerivedT const& that() const noexcept {
-		return static_cast<DerivedT const&>(*this);
+	DerivedT const* $() const noexcept {
+		return static_cast<DerivedT const*>(this);
 	}
 
 	It b() const {
@@ -32,20 +32,31 @@ class Parser {
 
 	RangeT data_;
 
-	bool parse_chunk_MThd(It& it) const {
+	ChunkType parse_chunk_header(It& it, uint32_t& length) const {
 		static constexpr char str_MThd[] = { 'M', 'T', 'h', 'd' };
+		static constexpr char str_MTrk[] = { 'M', 'T', 'r', 'k' };
 
-		if (it + std::size(str_MThd) > e())
-			return false;
-		if (!std::equal(std::begin(str_MThd), std::end(str_MThd), it))
-			return false;
-		if (it + std::size(str_MThd) + 4 + 2 + 2 + 2 > e())
-			throw Error("Cannot parse MThd header: Premature end of data");
-		it += std::size(str_MThd);
+		if (it + 4 + 4 > e())
+			throw Error("Cannot parse chunk header: Premature end of data");
 
-		const auto header_size = detail::read_int<uint32_t>(it, e());
+		ChunkType type = CHUNK_TYPE_UNKNOWN;
+		if (std::equal(std::begin(str_MThd), std::end(str_MThd), it))
+			type = CHUNK_TYPE_MThd;
+		else if (std::equal(std::begin(str_MTrk), std::end(str_MTrk), it))
+			type = CHUNK_TYPE_MTrk;
+		it += 4;
+
+		length = detail::read_int<uint32_t>(it, e());
+
+		return type;
+	}
+
+	void parse_chunk_MThd(It& it, const uint32_t header_size) const {
 		if (header_size != 6)
 			throw Error("Unexpected header size: ") << header_size;
+
+		if (it + 2 + 2 + 2 > e())
+			throw Error("Cannot parse MThd header: Premature end of data");
 
 		const auto file_format = detail::read_int<uint16_t>(it, e());
 		if (file_format > 2)
@@ -54,17 +65,44 @@ class Parser {
 		const auto number_of_tracks = detail::read_int<uint16_t>(it, e());
 		const auto delta_time_ticks_per_quarter_rate = detail::read_int<uint16_t>(it, e());
 
-		that().on_chunk_MThd(header_size, FileFormat(file_format), number_of_tracks, delta_time_ticks_per_quarter_rate);
+		$()->on_chunk_MThd(header_size, FileFormat(file_format), number_of_tracks, delta_time_ticks_per_quarter_rate);
+	}
 
-		return true;
+	void parse_chunk_MTrk(It& it, const uint32_t length) const {
+		$()->on_chunk_MTrk(length);
+		it += length;
+	}
+
+	void parse_chunk_unknown(It& it, const uint32_t length) const {
+		$()->on_chunk_unknown(length);
+		it += length;
 	}
 
 public:
 	Parser(RangeT range): data_{std::move(range)} {}
+
 	void operator()() const {
-		It it = b();
-		if (!parse_chunk_MThd(it))
-			throw Error("Cannot find MThd chunk");
+		bool was_chunk_MThd{false};
+		for (It it = b(); it < e(); ) {
+			uint32_t length = 0;
+			const ChunkType chunk_type = parse_chunk_header(it, length);
+			switch (chunk_type) {
+			case CHUNK_TYPE_MThd:
+				if (was_chunk_MThd)
+					throw Error("Chunk MThd seen more than once");
+				was_chunk_MThd = true;
+				parse_chunk_MThd(it, length);
+				break;
+			case CHUNK_TYPE_MTrk:
+				if (!was_chunk_MThd)
+					throw Error("Chunk MTrk seen before MThd chunk");
+				parse_chunk_MTrk(it, length);
+				break;
+			case CHUNK_TYPE_UNKNOWN:
+				parse_chunk_unknown(it, length);
+				break;
+			}
+		}
 	}
 
 };
