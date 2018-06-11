@@ -7,18 +7,22 @@ enum FileFormat {
     , FILE_FORMAT_MULTIPLE_TRACKS_SYNC = 1
     , FILE_FORMAT_MULTIPLE_TRACKS_ASYNC = 2
 };
-$::ostream& operator<<($::ostream& o, const FileFormat $)
-{
+char const* to_cstr(const FileFormat $) {
     switch($)
     {
     case FILE_FORMAT_SINGLE_TRACK:
-	return o << "SINGLE_TRACK";
+	return "SINGLE_TRACK";
     case FILE_FORMAT_MULTIPLE_TRACKS_SYNC:
-	return o << "MULTIPLE_TRACKS_SYNC";
+	return "MULTIPLE_TRACKS_SYNC";
     case FILE_FORMAT_MULTIPLE_TRACKS_ASYNC:
-	return o << "MULTIPLE_TRACKS_ASYNC";
+	return "MULTIPLE_TRACKS_ASYNC";
     }
     __builtin_unreachable();
+}
+
+$::ostream& operator<<($::ostream& o, const FileFormat $)
+{
+	return o << to_cstr($);
 }
 
 enum ChunkType {

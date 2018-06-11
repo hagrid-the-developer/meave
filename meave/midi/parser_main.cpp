@@ -1,6 +1,8 @@
+#include <cstdio>
+#include <glog/logging.h>
+#include <iomanip>
 #include <iostream>
 #include <string>
-#include <glog/logging.h>
 #include <fstream>
 #include <string>
 #include <sstream>
@@ -19,6 +21,17 @@ $::string read_file(char const* fn) {
 
 template<typename RangeT>
 class PrintingParser: public meave::midi::Parser<PrintingParser<RangeT>, RangeT> {
+	template <typename It>
+	static void print(It it, It e) {
+		for (; it < e; ++it) {
+			const uns u = uint8_t(*it);
+			if (u >= 32 && u <= 126)
+				putc(char(u), stdout);
+			else
+				printf("\\x%.2x", uns(uint8_t(u)));
+		}
+	}
+
 public:
 	PrintingParser(RangeT range): meave::midi::Parser<PrintingParser<RangeT>, RangeT>(std::move(range)) {}
 
@@ -37,8 +50,18 @@ public:
 			     "\n";
 	}
 	void on_chunk_unknown(const uns length) const {
-		std::cout << "Unknown chunk: " << length <<
-			     "\n";
+		printf("Unknown chunk of length: %u\n", length);
+	}
+
+	template <typename It>
+	void on_meta_event(const uns delta_time, const uns type, It it, It end) const {
+		printf("Meta Event:"
+		       "\n\t\tdelta_time: %u"
+		       "\n\t\ttype: 0x%x"
+		       "\n\t\tlength: %zu"
+		       "\n\t\tdata: ", delta_time, type, std::distance(it, end));
+		print(it, end);
+		putc('\n', stdout);
 	}
 };
 

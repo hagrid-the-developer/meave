@@ -68,9 +68,53 @@ class Parser {
 		$()->on_chunk_MThd(header_size, FileFormat(file_format), number_of_tracks, delta_time_ticks_per_quarter_rate);
 	}
 
+	void parse_event(const uns delta_time, It& it) const {
+		LOG(INFO) << __FUNCTION__;
+
+	}
+
+	void parse_running_status(const uns delta_time, It& it) const {
+		LOG(INFO) << __FUNCTION__;
+
+	}
+
+	void parse_meta_event(const uns delta_time, It& it) const {
+		LOG(INFO) << __FUNCTION__;
+
+		assert(uint8_t(*it) == 0xFF);
+		++it;
+		const uns type = uint8_t(*it);
+		++it;
+		const auto length = detail::read_varint(it, e());
+		if (it + length > e())
+			throw Error("Meta event with length: %u cannot fit into the data", length);
+		const auto beg = it;
+		it += length;
+		$()->on_meta_event(delta_time, type, beg, it);
+	}
+
+	void parse_sysex(const uns delta_time, It& it) const {
+		LOG(INFO) << __FUNCTION__;
+
+	}
+
 	void parse_chunk_MTrk(It& it, const uint32_t length) const {
 		$()->on_chunk_MTrk(length);
-		it += length;
+		for (const It end = it + length; it < end;) {
+			const uns delta_time = detail::read_varint(it, e());
+			const uns x = uint8_t(*it);
+			LOG(INFO) << "pos: " << (it - b()) << "; x: " << std::hex << x << std::dec << "; delta_time: " << delta_time;
+
+			if (x == 0xFF) {
+				parse_meta_event(delta_time, it);
+			} else if (x == 0xF0) {
+				parse_sysex(delta_time, it);
+			} else if (x & 0x80) {
+				parse_event(delta_time, it);
+			} else {
+				parse_running_status(delta_time, it);
+			}
+		}
 	}
 
 	void parse_chunk_unknown(It& it, const uint32_t length) const {
@@ -85,6 +129,7 @@ public:
 		bool was_chunk_MThd{false};
 		for (It it = b(); it < e(); ) {
 			uint32_t length = 0;
+			LOG(INFO) << "Outer pos: " << (it - b());
 			const ChunkType chunk_type = parse_chunk_header(it, length);
 			switch (chunk_type) {
 			case CHUNK_TYPE_MThd:
