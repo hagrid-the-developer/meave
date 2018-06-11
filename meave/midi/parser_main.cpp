@@ -36,12 +36,12 @@ public:
 	PrintingParser(RangeT range): meave::midi::Parser<PrintingParser<RangeT>, RangeT>(std::move(range)) {}
 
 	void on_chunk_MThd(const uns header_size, const meave::midi::FileFormat file_format, const uns number_of_tracks, const uns delta_time_ticks_per_quarter_rate) const {
-		std::cout << "MThd chunk:" <<
-			     "\n\theader-size: " << header_size <<
-			     "\n\tfile-format: " << file_format <<
-			     "\n\tnumber-of-tracks: " << number_of_tracks <<
-			     "\n\tdelta-time-ticks-per-quarter-note: " << delta_time_ticks_per_quarter_rate <<
-			     "\n";
+		printf("MThd chunk:"
+		       "\n\theader-size: %u"
+		       "\n\tfile-format: %s"
+		       "\n\tnumber-of-tracks: %u"
+		       "\n\tdelta-time-ticks-per-quarter-note: %u"
+		       "\n", header_size, to_cstr(file_format), number_of_tracks, delta_time_ticks_per_quarter_rate);
 	}
 
 	void on_chunk_MTrk(const uns length) const {

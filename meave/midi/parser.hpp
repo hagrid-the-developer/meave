@@ -70,24 +70,26 @@ class Parser {
 
 	void parse_event(const uns delta_time, It& it) const {
 		LOG(INFO) << __FUNCTION__;
-
 	}
 
 	void parse_running_status(const uns delta_time, It& it) const {
 		LOG(INFO) << __FUNCTION__;
-
 	}
 
 	void parse_meta_event(const uns delta_time, It& it) const {
 		LOG(INFO) << __FUNCTION__;
 
 		assert(uint8_t(*it) == 0xFF);
+
+		if (it + 2 > e())
+			throw Error("Cannot read MetaEvent: Premature end of data");
+
 		++it;
 		const uns type = uint8_t(*it);
 		++it;
 		const auto length = detail::read_varint(it, e());
 		if (it + length > e())
-			throw Error("Meta event with length: %u cannot fit into the data", length);
+			throw Error("MetaEvent with length %u cannot fit into the data", length);
 		const auto beg = it;
 		it += length;
 		$()->on_meta_event(delta_time, type, beg, it);
