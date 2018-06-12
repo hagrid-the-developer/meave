@@ -1,7 +1,5 @@
 #include <cstdio>
 #include <glog/logging.h>
-#include <iomanip>
-#include <iostream>
 #include <string>
 #include <fstream>
 #include <string>
@@ -45,9 +43,9 @@ public:
 	}
 
 	void on_chunk_MTrk(const uns length) const {
-		std::cout << "MTrk chunk:" <<
-			     "\n\tlength: " << length <<
-			     "\n";
+		printf("MTrk chunk:"
+		       "\n\tlength: %u"
+		       "\n", length);
 	}
 	void on_chunk_unknown(const uns length) const {
 		printf("Unknown chunk of length: %u\n", length);
@@ -55,13 +53,30 @@ public:
 
 	template <typename It>
 	void on_meta_event(const uns delta_time, const uns type, It it, It end) const {
-		printf("Meta Event:"
+		printf("\tMeta Event:"
 		       "\n\t\tdelta_time: %u"
 		       "\n\t\ttype: 0x%x"
 		       "\n\t\tlength: %zu"
 		       "\n\t\tdata: ", delta_time, type, std::distance(it, end));
 		print(it, end);
 		putc('\n', stdout);
+	}
+
+	void on_event_base(const char type[], const uns status, const uns channel, const uns data_byte_0, const uns data_byte_1) const {
+		printf("\t%s:"
+		       "\n\t\tstatus: %u"
+		       "\n\t\tchannel:%u"
+		       "\n\t\td0: %u"
+		       "\n\t\td1: %u"
+		       "\n", type, status, channel, data_byte_0, data_byte_1);
+	}
+
+	void on_event(const uns status, const uns channel, const uns data_byte_0, const uns data_byte_1) const {
+		on_event_base("Event", status, channel, data_byte_0, data_byte_1);
+	}
+
+	void on_running_status(const uns status, const uns channel, const uns data_byte_0, const uns data_byte_1) const {
+		on_event_base("RunningStatus", status, channel, data_byte_0, data_byte_1);
 	}
 };
 

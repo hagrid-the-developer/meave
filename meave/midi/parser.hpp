@@ -3,6 +3,7 @@
 #include <boost/range.hpp>
 #include <cstdint>
 #include <iterator>
+#include <optional>
 
 #include "meave/commons.hpp"
 #include "meave/lib/error.hpp"
@@ -68,12 +69,35 @@ class Parser {
 		$()->on_chunk_MThd(header_size, FileFormat(file_format), number_of_tracks, delta_time_ticks_per_quarter_rate);
 	}
 
-	void parse_event(const uns delta_time, It& it) const {
+	void parse_event(const uns delta_time, It& it, std::optional<uns>& status_channel_opt) const {
 		LOG(INFO) << __FUNCTION__;
+
+		if (it + 3 > e())
+			throw Error("Cannot parse Event: Premature end of data");
+
+		const uns status_channel = uint8_t(*it++);
+		const uns channel = status_channel & 0xF;
+		const uns status = status_channel >> 4;
+		const uns data_byte_0 = uint8_t(*it++);
+		const uns data_byte_1 = uint8_t(*it++);
+
+		status_channel_opt = status_channel;
+
+		$()->on_event(status, channel, data_byte_0, data_byte_1);
 	}
 
-	void parse_running_status(const uns delta_time, It& it) const {
+	void parse_running_status(const uns delta_time, It& it, const uns status_channel) const {
 		LOG(INFO) << __FUNCTION__;
+
+		if (it + 2 > e())
+			throw Error("Cannot parse RunningStatus: Premature end of data");
+
+		const uns channel = status_channel & 0xF;
+		const uns status = status_channel >> 4;
+		const uns data_byte_0 = uint8_t(*it++);
+		const uns data_byte_1 = uint8_t(*it++);
+
+		$()->on_running_status(status, channel, data_byte_0, data_byte_1);
 	}
 
 	void parse_meta_event(const uns delta_time, It& it) const {
@@ -102,19 +126,24 @@ class Parser {
 
 	void parse_chunk_MTrk(It& it, const uint32_t length) const {
 		$()->on_chunk_MTrk(length);
+
+		std::optional<uns> status_channel;
 		for (const It end = it + length; it < end;) {
 			const uns delta_time = detail::read_varint(it, e());
 			const uns x = uint8_t(*it);
 			LOG(INFO) << "pos: " << (it - b()) << "; x: " << std::hex << x << std::dec << "; delta_time: " << delta_time;
 
+			// FIXME: status_channel should be restarted under some circumstances
 			if (x == 0xFF) {
 				parse_meta_event(delta_time, it);
 			} else if (x == 0xF0) {
 				parse_sysex(delta_time, it);
 			} else if (x & 0x80) {
-				parse_event(delta_time, it);
+				parse_event(delta_time, it, status_channel);
 			} else {
-				parse_running_status(delta_time, it);
+				if (!status_channel.has_value())
+					throw Error("Running status without previous Event");
+				parse_running_status(delta_time, it, *status_channel);
 			}
 		}
 	}
