@@ -70,8 +70,6 @@ class Parser {
 	}
 
 	void parse_event(const uns delta_time, It& it, std::optional<uns>& status_channel_opt) const {
-		LOG(INFO) << __FUNCTION__;
-
 		if (it + 3 > e())
 			throw Error("Cannot parse Event: Premature end of data");
 
@@ -87,8 +85,6 @@ class Parser {
 	}
 
 	void parse_running_status(const uns delta_time, It& it, const uns status_channel) const {
-		LOG(INFO) << __FUNCTION__;
-
 		if (it + 2 > e())
 			throw Error("Cannot parse RunningStatus: Premature end of data");
 
@@ -101,8 +97,6 @@ class Parser {
 	}
 
 	void parse_meta_event(const uns delta_time, It& it) const {
-		LOG(INFO) << __FUNCTION__;
-
 		assert(uint8_t(*it) == 0xFF);
 
 		if (it + 2 > e())
@@ -120,7 +114,6 @@ class Parser {
 	}
 
 	void parse_sysex(const uns delta_time, It& it) const {
-		LOG(INFO) << __FUNCTION__;
 
 	}
 
@@ -131,7 +124,6 @@ class Parser {
 		for (const It end = it + length; it < end;) {
 			const uns delta_time = detail::read_varint(it, e());
 			const uns x = uint8_t(*it);
-			LOG(INFO) << "pos: " << (it - b()) << "; x: " << std::hex << x << std::dec << "; delta_time: " << delta_time;
 
 			// FIXME: status_channel should be restarted under some circumstances
 			if (x == 0xFF) {
@@ -160,7 +152,6 @@ public:
 		bool was_chunk_MThd{false};
 		for (It it = b(); it < e(); ) {
 			uint32_t length = 0;
-			LOG(INFO) << "Outer pos: " << (it - b());
 			const ChunkType chunk_type = parse_chunk_header(it, length);
 			switch (chunk_type) {
 			case CHUNK_TYPE_MThd:
